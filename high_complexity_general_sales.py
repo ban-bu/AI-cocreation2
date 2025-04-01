@@ -1981,9 +1981,47 @@ def show_high_complexity_general_sales():
         with st.expander("🖼️ Logo Design", expanded=True):
             st.markdown("#### Logo Design")
             
+            # 显示AI建议的Logo描述
+            if 'ai_suggested_logos' in st.session_state and st.session_state.ai_suggested_logos:
+                st.markdown("**AI Suggested Logo Descriptions:**")
+                for i, logo_desc in enumerate(st.session_state.ai_suggested_logos):
+                    st.markdown(f"{i+1}. {logo_desc}")
+            
+            # 添加Logo提示词输入框
+            logo_prompt = st.text_input(
+                "Enter logo description or use AI suggestions above",
+                value=st.session_state.get('logo_prompt', ''),
+                key="logo_prompt_input"
+            )
+            
+            # 添加重新生成Logo的按钮
+            if st.button("Generate New Logo"):
+                if logo_prompt:
+                    with st.spinner("Generating new logo..."):
+                        try:
+                            # 构建完整的提示词
+                            full_prompt = f"Create a Logo design: {logo_prompt}. Requirements: 1. Use a simple design 2. Suitable for printing 3. Background transparent 4. Clear and recognizable图案清晰可识别"
+                            
+                            # 调用DALL-E生成图像
+                            new_logo = generate_vector_image(full_prompt)
+                            
+                            if new_logo:
+                                # 保存新生成的Logo
+                                st.session_state.generated_logo = new_logo
+                                st.session_state.logo_prompt = logo_prompt
+                                st.session_state.logo_auto_generated = True
+                                st.session_state.show_generated_logo = True
+                                st.success("新Logo生成成功！")
+                            else:
+                                st.error("Logo生成失败，请重试。")
+                        except Exception as e:
+                            st.error(f"生成Logo时出错: {str(e)}")
+                else:
+                    st.warning("请输入Logo描述或使用AI建议。")
+            
             # 自动生成的Logo显示
             if hasattr(st.session_state, 'show_generated_logo') and st.session_state.show_generated_logo:
-                st.markdown("**AI Generated Logo:**")
+                st.markdown("**Current Logo:**")
                 st.image(st.session_state.generated_logo, width=150)
                 
                 # 添加Logo调整选项
