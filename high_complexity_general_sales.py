@@ -80,49 +80,38 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
     """
     
     try:
-        # 调用GPT-4o-mini
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a professional T-shirt design consultant, providing useful and specific suggestions. Follow the exact format specified in the prompt."},
-                {"role": "user", "content": prompt}
-            ]
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=1000
         )
         
-        # 返回建议内容
         if response.choices and len(response.choices) > 0:
             suggestion_text = response.choices[0].message.content
             
-            # 尝试解析颜色代码
             try:
-                # 提取颜色代码的简单方法
+                # 提取推荐颜色
+                color_pattern = r'Color \d+: ([^\n]+)'
                 color_matches = {}
+                color_descriptions = re.findall(color_pattern, suggestion_text)
                 
-                # 查找形如 "Color X: [Color Name] (#[Hex Code])" 的模式
-                color_pattern = r'Color \d+: ([^(]+) \(#([0-9A-Fa-f]{6})\)'
-                matches = re.findall(color_pattern, suggestion_text)
+                for color in color_descriptions:
+                    # 尝试提取该颜色周围的一段文本作为描述
+                    start_idx = suggestion_text.find(color)
+                    end_idx = min(start_idx + 200, len(suggestion_text))
+                    desc_text = suggestion_text[start_idx:end_idx]
+                    # 尝试在这段文本中找一个句子作为描述
+                    sentence_end = re.search(r'•\s*([^\n]+)', desc_text)
+                    if sentence_end:
+                        desc = sentence_end.group(1).strip()
+                    else:
+                        desc = desc_text.split('\n')[0].strip()
+                    color_matches[color] = desc
                 
-                print(f"Found color matches: {matches}")  # 调试信息
-                
-                if matches:
-                    color_matches = {name.strip(): f"#{code}" for name, code in matches}
-                    
-                # 保存到会话状态
+                # 保存推荐颜色到会话状态
                 if color_matches:
-                    color_dict = {name.strip(): f"#{code}" for name, code in color_matches}
-                    st.session_state.ai_suggested_colors = color_dict
-                    print(f"Saved colors to session state: {color_dict}")  # 调试信息
-                else:
-                    st.session_state.ai_suggested_colors = {}
-                    print("No colors found, using empty dict")  # 调试信息
-                    
-                # 尝试提取推荐文字
-                text_pattern = r'Text \d+: "([^"]+)"'
-                text_matches = re.findall(text_pattern, suggestion_text)
-                
-                # 保存推荐文字到会话状态
-                if text_matches:
-                    st.session_state.ai_suggested_texts = text_matches
+                    st.session_state.ai_suggested_colors = color_matches
                 
                 # 提取推荐面料类型
                 fabric_pattern = r'Fabric \d+: ([^\n]+)'
@@ -168,6 +157,33 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
                 if logo_matches:
                     st.session_state.ai_suggested_logos = logo_matches
                     
+                    # 自动生成第一个Logo
+                    try:
+                        if len(logo_matches) > 0:
+                            # 获取第一个Logo描述
+                            first_logo_desc = list(logo_matches.keys())[0]
+                            # 构建完整的提示词
+                            full_prompt = f"Create a Logo design: {first_logo_desc}. Requirements: 1. Use a simple design 2. Suitable for printing 3. Background transparent 4. Clear and recognizable图案清晰可识别"
+                            
+                            # 调用DALL-E生成图像
+                            logo_image = generate_vector_image(full_prompt)
+                            
+                            if logo_image:
+                                # 保存生成的Logo
+                                st.session_state.generated_logo = logo_image
+                                # 保存Logo提示词
+                                st.session_state.logo_prompt = first_logo_desc
+                                # 记录logo是自动生成的
+                                st.session_state.logo_auto_generated = True
+                                # 添加一个变量记录需要在UI中显示Logo
+                                st.session_state.show_generated_logo = True
+                                
+                                # 在控制台打印日志以便调试
+                                print(f"Logo自动生成成功: {first_logo_desc}")
+                    except Exception as logo_gen_error:
+                        print(f"自动生成Logo时出错: {logo_gen_error}")
+                        # 如果自动生成失败，不阻止其他功能
+                    
             except Exception as e:
                 print(f"Error parsing: {e}")
                 st.session_state.ai_suggested_texts = []
@@ -188,8 +204,13 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
             formatted_text = re.sub(r'[""]([^""]+)[""]', r'"<strong>\1</strong>"', formatted_text)
             formatted_text = re.sub(r'"([^"]+)"', r'"<strong>\1</strong>"', formatted_text)
             
-            # 直接返回格式化后的文本，不添加suggestion-container
-            return formatted_text
+            suggestion_with_style = f"""
+            <div class="suggestion-container">
+            {formatted_text}
+            </div>
+            """
+            
+            return suggestion_with_style
         else:
             return "can not get AI suggestions, please try again later."
     except Exception as e:
@@ -1982,73 +2003,102 @@ def show_high_complexity_general_sales():
 
         # Logo设计部分
         with st.expander("🖼️ Logo Design", expanded=True):
-            st.markdown("#### AI Generated Logo")
+            st.markdown("#### Add Logo to Your Design")
             
-            # 检查是否有AI建议的Logo
-            if 'ai_suggested_logos' in st.session_state and st.session_state.ai_suggested_logos:
-                # 显示AI建议的Logo描述
-                st.markdown("**AI Suggested Logo:**")
-                for logo_desc, logo_explanation in st.session_state.ai_suggested_logos.items():
-                    st.markdown(f"*{logo_desc}*")
-                    st.markdown(f"_{logo_explanation}_")
-                
-                # 自动生成Logo
-                if not hasattr(st.session_state, 'generated_logo'):
-                    with st.spinner("Generating logo based on AI suggestions..."):
-                        try:
-                            # 使用第一个Logo建议作为提示词
-                            logo_prompt = list(st.session_state.ai_suggested_logos.keys())[0]
-                            generated_logo = generate_vector_image(logo_prompt)
-                            
-                            if generated_logo:
-                                # 保存生成的Logo
-                                st.session_state.generated_logo = generated_logo
-                                st.session_state.show_generated_logo = True
-                                st.session_state.logo_prompt = logo_prompt
-                            else:
-                                st.error("Failed to generate logo. Please try again.")
-                        except Exception as e:
-                            st.error(f"Error generating logo: {str(e)}")
-            
-            # 显示生成的Logo
+            # 显示AI生成的Logo和建议
             if hasattr(st.session_state, 'show_generated_logo') and st.session_state.show_generated_logo:
-                st.markdown("**Generated Logo:**")
-                st.image(st.session_state.generated_logo, width=150)
+                col1, col2 = st.columns([1, 2])
                 
-                # Logo调整选项
-                st.markdown("**Adjust Logo:**")
+                with col1:
+                    st.markdown("**AI Generated Logo:**")
+                    st.image(st.session_state.generated_logo, width=150)
+                    
+                    # Logo调整选项
+                    st.markdown("**Adjust Logo:**")
+                    
+                    # Logo大小调整
+                    logo_size = st.slider("Logo size (%)", 5, 50, 25)
+                    
+                    # Logo位置选择
+                    position_options = ["Top-left", "Top-center", "Top-right", "Center", "Bottom-left", "Bottom-center", "Bottom-right"]
+                    logo_position = st.selectbox("Logo position", position_options, index=3)
+                    
+                    # Logo透明度调整
+                    logo_opacity = st.slider("Logo opacity (%)", 10, 100, 100)
+                    
+                    # 应用Logo按钮
+                    if st.button("Apply logo to design"):
+                        try:
+                            # 保存Logo信息
+                            st.session_state.applied_logo = {
+                                "source": "ai",
+                                "path": "temp_logo.png",
+                                "size": logo_size,
+                                "position": logo_position,
+                                "opacity": logo_opacity,
+                                "prompt": st.session_state.logo_prompt
+                            }
+                            
+                            # 保存图像到临时文件
+                            temp_logo = st.session_state.generated_logo
+                            temp_logo.save("temp_logo.png")
+                            
+                            st.success("Logo applied to design successfully!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error applying logo: {str(e)}")
                 
-                # Logo大小调整
-                logo_size = st.slider("Logo size (%)", 5, 50, 25)
-                
-                # Logo位置选择
-                position_options = ["Top-left", "Top-center", "Top-right", "Center", "Bottom-left", "Bottom-center", "Bottom-right"]
-                logo_position = st.selectbox("Logo position", position_options, index=3)
-                
-                # Logo透明度调整
-                logo_opacity = st.slider("Logo opacity (%)", 10, 100, 100)
-                
-                # 应用Logo按钮
-                if st.button("Apply logo to design"):
-                    try:
-                        # 保存Logo信息
-                        st.session_state.applied_logo = {
-                            "source": "ai",
-                            "path": "temp_logo.png",
-                            "size": logo_size,
-                            "position": logo_position,
-                            "opacity": logo_opacity,
-                            "prompt": st.session_state.logo_prompt
-                        }
-                        
-                        # 保存图像到临时文件
-                        temp_logo = st.session_state.generated_logo
-                        temp_logo.save("temp_logo.png")
-                        
-                        st.success("Logo applied to design successfully!")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error applying logo: {str(e)}")
+                with col2:
+                    # 显示其他AI建议的Logo选项
+                    if hasattr(st.session_state, 'ai_suggested_logos') and len(st.session_state.ai_suggested_logos) > 1:
+                        st.markdown("**Other Logo suggestions from AI:**")
+                        for i, (logo_desc, logo_explanation) in enumerate(list(st.session_state.ai_suggested_logos.items())[1:], 1):
+                            if st.button(f"Use suggestion {i}: {logo_desc[:50]}...", key=f"use_logo_suggestion_{i}"):
+                                with st.spinner("Generating Logo..."):
+                                    try:
+                                        # 构建完整的提示词
+                                        full_prompt = f"Create a Logo design: {logo_desc}. Requirements: 1. Use a simple design 2. Suitable for printing 3. Background transparent 4. Clear and recognizable图案清晰可识别"
+                                        
+                                        # 调用DALL-E生成图像
+                                        logo_image = generate_vector_image(full_prompt)
+                                        
+                                        if logo_image:
+                                            # 保存生成的Logo
+                                            st.session_state.generated_logo = logo_image
+                                            # 保存Logo提示词
+                                            st.session_state.logo_prompt = logo_desc
+                                            # 标记为用户选择的Logo
+                                            st.session_state.logo_auto_generated = False
+                                            st.success("Logo generated successfully!")
+                                            st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Error generating Logo: {str(e)}")
+                    
+                    # 自定义Logo生成
+                    st.markdown("**Generate Custom Logo:**")
+                    logo_prompt = st.text_input("Describe your logo design", 
+                                              value=st.session_state.logo_prompt if hasattr(st.session_state, 'logo_prompt') else "",
+                                              placeholder="e.g., a minimalist mountain logo, a modern abstract pattern, a simple geometric shape...")
+                    
+                    if st.button("Generate Logo"):
+                        if logo_prompt:
+                            with st.spinner("Generating logo with AI..."):
+                                try:
+                                    # 构建完整的提示词
+                                    full_prompt = f"Create a Logo design: {logo_prompt}. Requirements: 1. Use a simple design 2. Suitable for printing 3. Background transparent 4. Clear and recognizable图案清晰可识别"
+                                    
+                                    # 调用DALL-E生成Logo
+                                    generated_logo = generate_vector_image(full_prompt)
+                                    
+                                    if generated_logo:
+                                        # 保存生成的Logo
+                                        st.session_state.generated_logo = generated_logo
+                                        st.session_state.show_generated_logo = True
+                                        st.session_state.logo_prompt = logo_prompt
+                                    else:
+                                        st.error("Failed to generate logo. Please try again.")
+                                except Exception as e:
+                                    st.error(f"Error generating logo: {str(e)}")
             else:
                 st.info("Please get AI suggestions first to generate a logo.")
     
