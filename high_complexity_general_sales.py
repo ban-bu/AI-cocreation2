@@ -1973,9 +1973,34 @@ def show_high_complexity_general_sales():
         with st.expander("🖼️ Logo Design", expanded=True):
             st.markdown("#### Add Logo to Your Design")
             
+            # 添加生成新Logo的按钮
+            if st.button("🎨 Generate New Logo"):
+                with st.spinner("Generating new logo based on your preferences..."):
+                    try:
+                        # 使用当前的用户偏好生成新的Logo
+                        if 'user_preference' in st.session_state:
+                            user_pref = st.session_state.user_preference
+                            # 构建Logo生成提示词
+                            logo_prompt = f"Create a T-shirt logo design for: {user_pref}. Requirements: 1. Simple and clean design 2. Suitable for printing 3. Transparent background 4. Clear and recognizable图案清晰可识别"
+                            
+                            # 生成新的Logo
+                            new_logo = generate_vector_image(logo_prompt)
+                            
+                            if new_logo:
+                                # 更新Logo相关状态
+                                st.session_state.generated_logo = new_logo
+                                st.session_state.logo_prompt = logo_prompt
+                                st.session_state.logo_auto_generated = True
+                                st.session_state.show_generated_logo = True
+                                st.success("New logo generated successfully!")
+                            else:
+                                st.error("Failed to generate new logo. Please try again.")
+                    except Exception as e:
+                        st.error(f"Error generating logo: {str(e)}")
+            
             # 自动生成的Logo显示
             if hasattr(st.session_state, 'show_generated_logo') and st.session_state.show_generated_logo:
-                st.markdown("**AI Generated Logo from Your Preferences:**")
+                st.markdown("**AI Generated Logo:**")
                 st.image(st.session_state.generated_logo, width=150)
                 
                 if st.button("Apply AI Generated Logo"):
@@ -1993,50 +2018,6 @@ def show_high_complexity_general_sales():
                         "size": 25,  # 默认大小25%
                         "position": "Center",
                         "opacity": 100
-                    }
-                    st.rerun()
-            
-            # 如果已选择Logo，显示调整选项
-            if 'selected_preset_logo' in st.session_state:
-                # 确保应用信息已存在
-                if 'applied_logo' not in st.session_state:
-                    st.session_state.applied_logo = {
-                        "source": "ai",
-                        "path": st.session_state.selected_preset_logo,
-                        "size": 25,
-                        "position": "Center",
-                        "opacity": 100
-                    }
-                
-                st.markdown("**Adjust Logo:**")
-                
-                # 显示当前Logo预览
-                try:
-                    current_logo = Image.open(st.session_state.selected_preset_logo)
-                    st.image(current_logo, width=100)
-                except Exception as e:
-                    st.warning(f"可能无法打开Logo: {e}")
-                
-                # Logo大小调整
-                logo_size = st.slider("Logo size (%)", 5, 50, st.session_state.applied_logo["size"])
-                
-                # Logo位置选择
-                position_options = ["Top-left", "Top-center", "Top-right", "Center", "Bottom-left", "Bottom-center", "Bottom-right"]
-                logo_position = st.selectbox("Logo position", position_options, 
-                                            index=position_options.index(st.session_state.applied_logo["position"]) if st.session_state.applied_logo["position"] in position_options else 3)
-                
-                # Logo透明度调整
-                logo_opacity = st.slider("Logo opacity (%)", 10, 100, st.session_state.applied_logo["opacity"])
-                
-                # 应用Logo按钮
-                if st.button("Apply logo with settings"):
-                    # 更新Logo设置
-                    st.session_state.applied_logo = {
-                        "source": st.session_state.applied_logo["source"],
-                        "path": st.session_state.selected_preset_logo,
-                        "size": logo_size,
-                        "position": logo_position,
-                        "opacity": logo_opacity
                     }
                     st.rerun()
     
