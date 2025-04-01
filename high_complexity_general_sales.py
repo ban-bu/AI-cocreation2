@@ -1542,16 +1542,17 @@ def show_high_complexity_general_sales():
             text_col1, text_col2 = st.columns([2, 1])
             
             with text_col1:
-                # 使用会话状态设置文本输入框的值
+                # 初始化会话状态
+                if 'ai_text_suggestion' not in st.session_state:
+                    st.session_state.ai_text_suggestion = ""
+                
+                # 如果有临时文本选择，更新会话状态
                 if 'temp_text_selection' in st.session_state:
-                    text_content = st.text_input("Enter or copy AI recommended text", key="ai_text_suggestion")
                     st.session_state.ai_text_suggestion = st.session_state.temp_text_selection
-                    # 使用后清除临时状态
                     del st.session_state.temp_text_selection
-                elif 'ai_text_suggestion' in st.session_state:
-                    text_content = st.text_input("Enter or copy AI recommended text", key="ai_text_suggestion")
-                else:
-                    text_content = st.text_input("Enter or copy AI recommended text", key="ai_text_suggestion")
+                
+                # 创建文本输入框
+                text_content = st.text_input("Enter or copy AI recommended text", value=st.session_state.ai_text_suggestion)
             
             with text_col2:
                 text_color = st.color_picker("Text color:", "#000000", key="ai_text_color")
