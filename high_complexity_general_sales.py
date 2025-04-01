@@ -1324,7 +1324,7 @@ def show_high_complexity_general_sales():
                 <script>
                 function fillTextInput(text) {
                     // 找到文本输入框并设置值
-                    const textInput = document.querySelector('input[aria-label="Describe your preferred style or usage"]');
+                    const textInput = document.querySelector('input[aria-label="Enter or copy AI recommended text"]');
                     if (textInput) {
                         textInput.value = text;
                         // 触发input事件以确保Streamlit检测到变化
@@ -1342,6 +1342,13 @@ def show_high_complexity_general_sales():
                     suggestions_html)
                 
                 st.markdown(suggestions_html, unsafe_allow_html=True)
+                
+                # 自动填充第一个文本建议
+                if 'ai_suggested_texts' in st.session_state and st.session_state.ai_suggested_texts:
+                    # 获取第一个文本建议
+                    first_text = st.session_state.ai_suggested_texts[0]
+                    # 设置到会话状态
+                    st.session_state.temp_text_selection = first_text
 
         # 将应用建议的部分移出条件判断，确保始终显示
         with st.expander("🎨 Color & Fabric", expanded=True):
