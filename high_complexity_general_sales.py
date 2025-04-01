@@ -2101,7 +2101,7 @@ def show_high_complexity_general_sales():
                                 "opacity": logo_opacity
                             }
                             
-                            st.success("Logo已成功应用到设计中！")
+                            st.success("Logo has been applied to the design successfully!")
                             st.rerun()
                         except Exception as e:
                             st.error(f"Logo合成时出错: {str(e)}")
@@ -2133,7 +2133,7 @@ def show_high_complexity_general_sales():
                         with st.spinner("Generating new logo..."):
                             try:
                                 # 构建完整的提示词
-                                full_prompt = f"Create a Logo design: {logo_prompt}. Requirements: 1. Use a simple design 2. Suitable for printing 3. Background transparent 4. Clear and recognizable图案清晰可识别"
+                                full_prompt = f"Create a Logo design: {logo_prompt}. Requirements: 1. Use a clean and professional design 2. Suitable for printing on T-shirts 3. Clear and recognizable图案清晰可识别 4. No transparent background 5. Ensure good contrast and visibility"
                                 
                                 # 调用DALL-E生成图像
                                 new_logo = generate_vector_image(full_prompt)
