@@ -891,7 +891,7 @@ def show_high_complexity_general_sales():
                                 hr_text_height = total_height * 2
                                 
                                 # 获取对齐方式并转换为小写
-                                alignment = text_info["alignment"].lower() if isinstance(text_info["alignment"], str) else "center"
+                                alignment = alignment.lower() if isinstance(alignment, str) else "center"
                                 
                                 # 根据对齐方式计算X位置
                                 if alignment == "left":
@@ -911,7 +911,7 @@ def show_high_complexity_general_sales():
                                 font_debug_info.append(f"HR text position: ({hr_text_x}, {hr_text_y})")
                                 
                                 # 先应用特效 - 在高分辨率画布上
-                                if "Outline" in text_info["style"]:
+                                if "Outline" in text_style:
                                     # 增强轮廓效果
                                     outline_color = "black"
                                     outline_width = max(8, hr_font_size // 10)  # 加粗轮廓宽度
@@ -939,7 +939,7 @@ def show_high_complexity_general_sales():
                                             hr_draw.text((line_x + offset_x, line_y + offset_y), 
                                                       line, fill=outline_color, font=hr_font)
                                 
-                                if "Shadow" in text_info["style"]:
+                                if "Shadow" in text_style:
                                     # 增强阴影效果
                                     shadow_color = (0, 0, 0, 150)  # 半透明黑色
                                     shadow_offset = max(15, hr_font_size // 8)  # 增加阴影偏移距离
@@ -988,8 +988,8 @@ def show_high_complexity_general_sales():
                                     hr_draw.text((line_x, line_y), line, fill=text_rgba, font=hr_font)
                                 
                                 # 特殊效果处理
-                                if text_info["effect"] != "None":
-                                    font_debug_info.append(f"Applying special effect: {text_info['effect']}")
+                                if text_effect != "None":
+                                    font_debug_info.append(f"Applying special effect: {text_effect}")
                                     # 未来可以在这里添加高分辨率特效处理
                                 
                                 # 将高分辨率图层缩小回原始尺寸 - 使用LANCZOS重采样以获得最佳质量
@@ -1810,7 +1810,7 @@ def show_high_complexity_general_sales():
                                 hr_text_height = total_height * 2
                                 
                                 # 获取对齐方式并转换为小写
-                                alignment = text_info["alignment"].lower() if isinstance(text_info["alignment"], str) else "center"
+                                alignment = alignment.lower() if isinstance(alignment, str) else "center"
                                 
                                 # 根据对齐方式计算X位置
                                 if alignment == "left":
@@ -1830,7 +1830,7 @@ def show_high_complexity_general_sales():
                                 font_debug_info.append(f"HR text position: ({hr_text_x}, {hr_text_y})")
                                 
                                 # 先应用特效 - 在高分辨率画布上
-                                if "Outline" in text_info["style"]:
+                                if "Outline" in text_style:
                                     # 增强轮廓效果
                                     outline_color = "black"
                                     outline_width = max(8, hr_font_size // 10)  # 加粗轮廓宽度
@@ -1858,7 +1858,7 @@ def show_high_complexity_general_sales():
                                             hr_draw.text((line_x + offset_x, line_y + offset_y), 
                                                       line, fill=outline_color, font=hr_font)
                                 
-                                if "Shadow" in text_info["style"]:
+                                if "Shadow" in text_style:
                                     # 增强阴影效果
                                     shadow_color = (0, 0, 0, 150)  # 半透明黑色
                                     shadow_offset = max(15, hr_font_size // 8)  # 增加阴影偏移距离
