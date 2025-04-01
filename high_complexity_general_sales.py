@@ -1530,24 +1530,10 @@ def show_high_complexity_general_sales():
                 
                 for i, suggestion in enumerate(text_suggestions):
                     with suggestion_cols[i % 3]:
-                        # 创建可点击的候选项框
-                        st.markdown(
-                            f"""
-                            <div style="
-                                padding: 10px;
-                                margin: 5px 0;
-                                border: 1px solid #ddd;
-                                border-radius: 5px;
-                                background-color: #f8f9fa;
-                                cursor: pointer;
-                                transition: all 0.2s;
-                                text-align: center;
-                            " onclick="document.getElementById('ai_text_suggestion').value = '{suggestion}'; document.getElementById('ai_text_suggestion').dispatchEvent(new Event('input'));">
-                            {suggestion}
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
+                        # 使用Streamlit按钮替代HTML点击事件
+                        if st.button(suggestion, key=f"suggestion_{i}"):
+                            st.session_state.ai_text_suggestion = suggestion
+                            st.rerun()
             
             # 文字选项
             text_col1, text_col2 = st.columns([2, 1])
