@@ -1423,11 +1423,7 @@ def show_high_complexity_general_sales():
                 
                 for i, (fabric_name, fabric_desc) in enumerate(fabric_matches.items()):
                     with fabric_cols[i % 2]:
-                        # 显示简短描述
-                        short_desc = fabric_desc[:100] + "..." if len(fabric_desc) > 100 else fabric_desc
-                        
                         st.markdown(f"**{fabric_name}**")
-                        st.markdown(f"*{short_desc}*")
                         
                         if st.button(f"Use {fabric_name}", key=f"fabric_{i}"):
                             # 更新面料类型
