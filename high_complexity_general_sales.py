@@ -754,7 +754,7 @@ def show_high_complexity_general_sales():
                                     ]
                                 
                                 # 设定字体大小
-                                render_size = text_info["size"]
+                                render_size = 39  # 设置默认字体大小为39
                                 font_debug_info.append(f"Trying to load font, size: {render_size}px")
                                 
                                 # 尝试加载每个字体
@@ -785,23 +785,40 @@ def show_high_complexity_general_sales():
                                 max_text_width = int(img_width * 0.7)  # 最大文本宽度为T恤宽度的70%
                                 lines = []
                                 words = text_info["text"].split()
-                                current_line = words[0] if words else ""
                                 
-                                # 逐词检查并换行
-                                for word in words[1:]:
-                                    test_line = current_line + " " + word
-                                    # 检查添加这个词后的宽度
-                                    test_bbox = text_draw.textbbox((0, 0), test_line, font=font)
-                                    test_width = test_bbox[2] - test_bbox[0]
+                                if not words:
+                                    lines = [""]
+                                else:
+                                    current_line = words[0]
                                     
-                                    if test_width <= max_text_width:
-                                        current_line = test_line
-                                    else:
-                                        lines.append(current_line)
-                                        current_line = word
+                                    # 逐词检查并换行
+                                    for word in words[1:]:
+                                        test_line = current_line + " " + word
+                                        # 检查添加这个词后的宽度
+                                        test_bbox = text_draw.textbbox((0, 0), test_line, font=font)
+                                        test_width = test_bbox[2] - test_bbox[0]
+                                        
+                                        if test_width <= max_text_width:
+                                            current_line = test_line
+                                        else:
+                                            # 如果当前行太长，尝试在合适的位置换行
+                                            if len(current_line) > 0:
+                                                # 尝试在最后一个空格处换行
+                                                last_space = current_line.rfind(" ")
+                                                if last_space > 0:
+                                                    lines.append(current_line[:last_space])
+                                                    current_line = current_line[last_space + 1:] + " " + word
+                                                else:
+                                                    # 如果没有空格，直接在当前词处换行
+                                                    lines.append(current_line)
+                                                    current_line = word
+                                            else:
+                                                # 如果当前行为空，直接添加新词
+                                                current_line = word
                                 
                                 # 添加最后一行
-                                lines.append(current_line)
+                                if current_line:
+                                    lines.append(current_line)
                                 
                                 # 计算总高度和最大宽度
                                 line_height = render_size * 1.2  # 行高略大于字体大小
@@ -1559,7 +1576,7 @@ def show_high_complexity_general_sales():
             text_style = st.multiselect("Text style:", ["Bold", "Italic", "Underline", "Shadow", "Outline"], default=["Bold"])
             
             # 添加动态文字大小滑块 - 增加最大值
-            text_size = st.slider("Text size:", 20, 400, 100, key="ai_text_size")
+            text_size = st.slider("Text size:", 20, 400, 39, key="ai_text_size")
             
             # 添加文字效果选项
             text_effect = st.selectbox("Text effect:", ["None", "Bent", "Arch", "Wave", "3D", "Gradient"])
@@ -1694,7 +1711,7 @@ def show_high_complexity_general_sales():
                                     ]
                                 
                                 # 设定字体大小
-                                render_size = text_size
+                                render_size = 39  # 设置默认字体大小为39
                                 font_debug_info.append(f"Trying to load font, size: {render_size}px")
                                 
                                 # 尝试加载每个字体
@@ -1725,23 +1742,40 @@ def show_high_complexity_general_sales():
                                 max_text_width = int(img_width * 0.7)  # 最大文本宽度为T恤宽度的70%
                                 lines = []
                                 words = text_content.split()
-                                current_line = words[0] if words else ""
                                 
-                                # 逐词检查并换行
-                                for word in words[1:]:
-                                    test_line = current_line + " " + word
-                                    # 检查添加这个词后的宽度
-                                    test_bbox = text_draw.textbbox((0, 0), test_line, font=font)
-                                    test_width = test_bbox[2] - test_bbox[0]
+                                if not words:
+                                    lines = [""]
+                                else:
+                                    current_line = words[0]
                                     
-                                    if test_width <= max_text_width:
-                                        current_line = test_line
-                                    else:
-                                        lines.append(current_line)
-                                        current_line = word
+                                    # 逐词检查并换行
+                                    for word in words[1:]:
+                                        test_line = current_line + " " + word
+                                        # 检查添加这个词后的宽度
+                                        test_bbox = text_draw.textbbox((0, 0), test_line, font=font)
+                                        test_width = test_bbox[2] - test_bbox[0]
+                                        
+                                        if test_width <= max_text_width:
+                                            current_line = test_line
+                                        else:
+                                            # 如果当前行太长，尝试在合适的位置换行
+                                            if len(current_line) > 0:
+                                                # 尝试在最后一个空格处换行
+                                                last_space = current_line.rfind(" ")
+                                                if last_space > 0:
+                                                    lines.append(current_line[:last_space])
+                                                    current_line = current_line[last_space + 1:] + " " + word
+                                                else:
+                                                    # 如果没有空格，直接在当前词处换行
+                                                    lines.append(current_line)
+                                                    current_line = word
+                                            else:
+                                                # 如果当前行为空，直接添加新词
+                                                current_line = word
                                 
                                 # 添加最后一行
-                                lines.append(current_line)
+                                if current_line:
+                                    lines.append(current_line)
                                 
                                 # 计算总高度和最大宽度
                                 line_height = render_size * 1.2  # 行高略大于字体大小
