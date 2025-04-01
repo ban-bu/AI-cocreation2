@@ -1996,70 +1996,12 @@ def show_high_complexity_general_sales():
                     }
                     st.rerun()
             
-            # 预设Logo选项
-            st.markdown("**Preset Logos:**")
-            
-            # 获取所有预设Logo
-            preset_logos = get_preset_logos()
-            
-            if preset_logos:
-                # 创建Logo预览网格
-                logo_cols = st.columns(min(4, len(preset_logos)))
-                
-                for i, logo_path in enumerate(preset_logos):
-                    with logo_cols[i % 4]:
-                        st.image(logo_path, width=80)
-                        if st.button(f"Select Logo {i+1}", key=f"logo_{i}"):
-                            st.session_state.selected_preset_logo = logo_path
-                            
-                            # 创建或更新应用信息
-                            st.session_state.applied_logo = {
-                                "source": "preset",
-                                "path": logo_path,
-                                "size": 25,  # 默认大小25%
-                                "position": "Center",
-                                "opacity": 100
-                            }
-                            st.rerun()
-            else:
-                st.info("No preset logos found. Please upload your own logo.")
-            
-            # 自定义Logo上传
-            st.markdown("**Upload Custom Logo:**")
-            uploaded_logo = st.file_uploader("Choose a logo image (PNG with transparency recommended)", type=["png", "jpg", "jpeg"])
-            
-            if uploaded_logo is not None:
-                # 显示上传的Logo预览
-                logo_preview = Image.open(BytesIO(uploaded_logo.getvalue()))
-                st.image(logo_preview, width=150)
-                
-                if st.button("Use this logo"):
-                    # 保存上传的Logo
-                    logo_image = Image.open(BytesIO(uploaded_logo.getvalue())).convert("RGBA")
-                    logo_filename = f"uploaded_logo_{uuid.uuid4()}.png"
-                    logo_path = os.path.join("logos", logo_filename)
-                    
-                    # 确保目录存在
-                    os.makedirs("logos", exist_ok=True)
-                    logo_image.save(logo_path)
-                    
-                    # 保存Logo信息
-                    st.session_state.selected_preset_logo = logo_path
-                    st.session_state.applied_logo = {
-                        "source": "upload",
-                        "path": logo_path,
-                        "size": 25,  # 默认大小25%
-                        "position": "Center",
-                        "opacity": 100
-                    }
-                    st.rerun()
-            
             # 如果已选择Logo，显示调整选项
             if 'selected_preset_logo' in st.session_state:
                 # 确保应用信息已存在
                 if 'applied_logo' not in st.session_state:
                     st.session_state.applied_logo = {
-                        "source": "preset",
+                        "source": "ai",
                         "path": st.session_state.selected_preset_logo,
                         "size": 25,
                         "position": "Center",
