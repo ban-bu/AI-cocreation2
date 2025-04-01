@@ -1324,6 +1324,8 @@ def show_high_complexity_general_sales():
                 .suggestion-section {
                     margin-bottom: 12px;
                     font-weight: 500;
+                    color: #1976D2;
+                    font-size: 1.1em;
                 }
                 .suggestion-item {
                     margin-left: 15px;
@@ -1346,6 +1348,20 @@ def show_high_complexity_general_sales():
                 .suggested-text:hover {
                     background-color: #e6f2ff;
                     text-decoration: underline;
+                }
+                /* 添加新的样式来确保所有标题都能正确显示 */
+                h4, h5, h6 {
+                    color: #1976D2;
+                    font-weight: 500;
+                    margin-top: 1em;
+                    margin-bottom: 0.5em;
+                }
+                /* 确保所有数字标题都能正确显示 */
+                div[class*="suggestion-section"] {
+                    color: #1976D2;
+                    font-weight: 500;
+                    font-size: 1.1em;
+                    margin-bottom: 12px;
                 }
                 </style>
                 """, unsafe_allow_html=True)
@@ -1997,8 +2013,6 @@ def show_high_complexity_general_sales():
                     st.rerun()
             
             # 预设Logo选项
-            st.markdown("**Preset Logos:**")
-            
             # 获取所有预设Logo
             preset_logos = get_preset_logos()
             
@@ -2025,7 +2039,6 @@ def show_high_complexity_general_sales():
                 st.info("No preset logos found. Please upload your own logo.")
             
             # 自定义Logo上传
-            st.markdown("**Upload Custom Logo:**")
             uploaded_logo = st.file_uploader("Choose a logo image (PNG with transparency recommended)", type=["png", "jpg", "jpeg"])
             
             if uploaded_logo is not None:
