@@ -64,7 +64,7 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
        
     3. Text Suggestions:
        Text 1: "[Text Content]"
-       • Font: [Font Name]
+       • Font: [Font Name] 
        • [Explanation]
        Text 2: "[Text Content]"
        • Font: [Font Name]
@@ -1533,8 +1533,6 @@ def show_high_complexity_general_sales():
                     with text_cols[i % 2]:
                         if st.button(f"Use: {text}", key=f"text_suggestion_{i}"):
                             # 更新会话状态中的文本选择
-                            st.session_state.temp_text_selection = text
-                            # 更新输入框的值
                             st.session_state.ai_text_suggestion = text
                             # 强制刷新页面
                             st.rerun()
@@ -1546,11 +1544,6 @@ def show_high_complexity_general_sales():
                 # 初始化会话状态
                 if 'ai_text_suggestion' not in st.session_state:
                     st.session_state.ai_text_suggestion = ""
-                
-                # 如果有临时文本选择，更新会话状态
-                if 'temp_text_selection' in st.session_state:
-                    st.session_state.ai_text_suggestion = st.session_state.temp_text_selection
-                    del st.session_state.temp_text_selection
                 
                 # 创建文本输入框，使用value参数
                 text_content = st.text_input("Enter or copy AI recommended text", value=st.session_state.ai_text_suggestion)
