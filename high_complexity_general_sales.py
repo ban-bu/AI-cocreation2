@@ -1989,43 +1989,82 @@ def show_high_complexity_general_sales():
         with st.expander("🖼️ Logo Design", expanded=True):
             st.markdown("#### Add Logo to Your Design")
             
-            # 自动生成的Logo显示
-            if hasattr(st.session_state, 'show_generated_logo') and st.session_state.show_generated_logo:
-                st.markdown("**AI Generated Logo from Your Preferences:**")
-                st.image(st.session_state.generated_logo, width=150)
-                
-                if st.button("Apply AI Generated Logo"):
-                    # 保存Logo信息
-                    st.session_state.selected_preset_logo = "temp_logo.png"  # 临时名称
-                    
-                    # 保存图像到临时文件
-                    temp_logo = st.session_state.generated_logo
-                    temp_logo.save("temp_logo.png")
-                    
-                    # 创建Logo应用信息
-                    st.session_state.applied_logo = {
-                        "source": "ai",
-                        "path": "temp_logo.png",
-                        "size": 25,  # 默认大小25%
-                        "position": "Center",
-                        "opacity": 100
-                    }
-                    st.rerun()
+            # 添加Logo生成功能
+            logo_prompt = st.text_input("Describe your logo design", placeholder="e.g., a minimalist mountain logo, a modern abstract pattern, a simple geometric shape...")
             
-            # 如果已选择Logo，显示调整选项
+            if st.button("Generate Logo"):
+                if logo_prompt:
+                    with st.spinner("Generating logo with AI..."):
+                        try:
+                            # 构建完整的提示词
+                            full_prompt = f"Create a Logo design: {logo_prompt}. Requirements: 1. Use a simple design 2. Suitable for printing 3. Background transparent 4. Clear and recognizable pattern"
+                            
+                            # 调用DALL-E生成Logo
+                            generated_logo = generate_vector_image(full_prompt)
+                            
+                            if generated_logo:
+                                # 保存生成的Logo
+                                temp_filename = f"generated_logo_{uuid.uuid4()}.png"
+                                temp_path = os.path.join("logos", temp_filename)
+                                generated_logo.save(temp_path)
+                                
+                                # 更新Logo信息
+                                st.session_state.selected_preset_logo = temp_path
+                                st.session_state.applied_logo = {
+                                    "source": "ai",
+                                    "path": temp_path,
+                                    "size": 25,
+                                    "position": "Center",
+                                    "opacity": 100
+                                }
+                                
+                                # 应用Logo到T恤
+                                try:
+                                    # 获取当前T恤图像
+                                    if st.session_state.final_design is not None:
+                                        new_design = st.session_state.final_design.copy()
+                                    else:
+                                        new_design = st.session_state.base_image.copy()
+                                    
+                                    # 获取图像尺寸
+                                    img_width, img_height = new_design.size
+                                    
+                                    # 定义T恤前胸区域
+                                    chest_width = int(img_width * 0.95)
+                                    chest_height = int(img_height * 0.6)
+                                    chest_left = (img_width - chest_width) // 2
+                                    chest_top = int(img_height * 0.2)
+                                    
+                                    # 调整Logo大小
+                                    logo_size_factor = 25 / 100  # 默认25%大小
+                                    logo_width = int(chest_width * logo_size_factor * 0.5)
+                                    logo_height = int(logo_width * generated_logo.height / generated_logo.width)
+                                    logo_resized = generated_logo.resize((logo_width, logo_height), Image.LANCZOS)
+                                    
+                                    # 计算居中位置
+                                    logo_x = chest_left + (chest_width - logo_width) // 2
+                                    logo_y = chest_top + (chest_height - logo_height) // 2
+                                    
+                                    # 粘贴Logo到设计
+                                    new_design.paste(logo_resized, (logo_x, logo_y), logo_resized)
+                                    
+                                    # 更新设计和预览
+                                    st.session_state.final_design = new_design
+                                    st.session_state.current_image = new_design.copy()
+                                    
+                                    st.success("Logo generated and applied successfully!")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Error applying logo to design: {str(e)}")
+                            else:
+                                st.error("Failed to generate logo. Please try again.")
+                        except Exception as e:
+                            st.error(f"Error generating logo: {str(e)}")
+                else:
+                    st.warning("Please enter a logo description.")
+            
+            # 如果已有Logo，显示修改功能
             if 'selected_preset_logo' in st.session_state:
-                # 确保应用信息已存在
-                if 'applied_logo' not in st.session_state:
-                    st.session_state.applied_logo = {
-                        "source": "preset",
-                        "path": st.session_state.selected_preset_logo,
-                        "size": 25,
-                        "position": "Center",
-                        "opacity": 100
-                    }
-                
-                st.markdown("**Adjust Logo:**")
-                
                 # 显示当前Logo预览
                 try:
                     current_logo = Image.open(st.session_state.selected_preset_logo)
@@ -2033,8 +2072,8 @@ def show_high_complexity_general_sales():
                 except Exception as e:
                     st.warning(f"可能无法打开Logo: {e}")
                 
-                # 添加Logo修改功能
-                st.markdown("**Modify Logo with AI:**")
+                # Logo修改功能
+                st.markdown("**Modify Current Logo:**")
                 logo_modify_prompt = st.text_input("Enter your modification request", placeholder="e.g., make it more colorful, add a modern style, make it minimalist...")
                 
                 if st.button("Modify Logo"):
@@ -2063,8 +2102,72 @@ def show_high_complexity_general_sales():
                                         "opacity": st.session_state.applied_logo["opacity"]
                                     }
                                     
-                                    st.success("Logo modified successfully!")
-                                    st.rerun()
+                                    # 应用修改后的Logo到T恤
+                                    try:
+                                        # 获取当前T恤图像
+                                        if st.session_state.final_design is not None:
+                                            new_design = st.session_state.final_design.copy()
+                                        else:
+                                            new_design = st.session_state.base_image.copy()
+                                        
+                                        # 获取图像尺寸
+                                        img_width, img_height = new_design.size
+                                        
+                                        # 定义T恤前胸区域
+                                        chest_width = int(img_width * 0.95)
+                                        chest_height = int(img_height * 0.6)
+                                        chest_left = (img_width - chest_width) // 2
+                                        chest_top = int(img_height * 0.2)
+                                        
+                                        # 调整Logo大小
+                                        logo_size_factor = st.session_state.applied_logo["size"] / 100
+                                        logo_width = int(chest_width * logo_size_factor * 0.5)
+                                        logo_height = int(logo_width * modified_logo.height / modified_logo.width)
+                                        logo_resized = modified_logo.resize((logo_width, logo_height), Image.LANCZOS)
+                                        
+                                        # 计算位置
+                                        position = st.session_state.applied_logo["position"]
+                                        if position == "Center":
+                                            logo_x = chest_left + (chest_width - logo_width) // 2
+                                            logo_y = chest_top + (chest_height - logo_height) // 2
+                                        elif position == "Top-left":
+                                            logo_x = chest_left + 10
+                                            logo_y = chest_top + 10
+                                        elif position == "Top-right":
+                                            logo_x = chest_left + chest_width - logo_width - 10
+                                            logo_y = chest_top + 10
+                                        elif position == "Bottom-left":
+                                            logo_x = chest_left + 10
+                                            logo_y = chest_top + chest_height - logo_height - 10
+                                        elif position == "Bottom-right":
+                                            logo_x = chest_left + chest_width - logo_width - 10
+                                            logo_y = chest_top + chest_height - logo_height - 10
+                                        else:
+                                            # 默认居中
+                                            logo_x = chest_left + (chest_width - logo_width) // 2
+                                            logo_y = chest_top + (chest_height - logo_height) // 2
+                                        
+                                        # 设置透明度
+                                        if st.session_state.applied_logo["opacity"] < 100:
+                                            logo_data = logo_resized.getdata()
+                                            new_data = []
+                                            for item in logo_data:
+                                                r, g, b, a = item
+                                                new_a = int(a * st.session_state.applied_logo["opacity"] / 100)
+                                                new_data.append((r, g, b, new_a))
+                                            logo_resized.putdata(new_data)
+                                        
+                                        # 粘贴Logo到设计
+                                        new_design.paste(logo_resized, (logo_x, logo_y), logo_resized)
+                                        
+                                        # 更新设计和预览
+                                        st.session_state.final_design = new_design
+                                        st.session_state.current_image = new_design.copy()
+                                        
+                                        st.success("Logo modified and applied successfully!")
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Error applying modified logo: {str(e)}")
                                 else:
                                     st.error("Failed to modify logo. Please try again.")
                             except Exception as e:
@@ -2072,19 +2175,17 @@ def show_high_complexity_general_sales():
                     else:
                         st.warning("Please enter a modification request.")
                 
-                # Logo大小调整
+                # Logo调整选项
+                st.markdown("**Adjust Logo:**")
                 logo_size = st.slider("Logo size (%)", 5, 50, st.session_state.applied_logo["size"])
                 
-                # Logo位置选择
                 position_options = ["Top-left", "Top-center", "Top-right", "Center", "Bottom-left", "Bottom-center", "Bottom-right"]
                 logo_position = st.selectbox("Logo position", position_options, 
                                             index=position_options.index(st.session_state.applied_logo["position"]) if st.session_state.applied_logo["position"] in position_options else 3)
                 
-                # Logo透明度调整
                 logo_opacity = st.slider("Logo opacity (%)", 10, 100, st.session_state.applied_logo["opacity"])
                 
-                # 应用Logo按钮
-                if st.button("Apply logo with settings"):
+                if st.button("Apply logo settings"):
                     # 更新Logo设置
                     st.session_state.applied_logo = {
                         "source": st.session_state.applied_logo["source"],
@@ -2093,7 +2194,75 @@ def show_high_complexity_general_sales():
                         "position": logo_position,
                         "opacity": logo_opacity
                     }
-                    st.rerun()
+                    
+                    # 重新应用Logo到T恤
+                    try:
+                        # 获取当前T恤图像
+                        if st.session_state.final_design is not None:
+                            new_design = st.session_state.final_design.copy()
+                        else:
+                            new_design = st.session_state.base_image.copy()
+                        
+                        # 获取图像尺寸
+                        img_width, img_height = new_design.size
+                        
+                        # 定义T恤前胸区域
+                        chest_width = int(img_width * 0.95)
+                        chest_height = int(img_height * 0.6)
+                        chest_left = (img_width - chest_width) // 2
+                        chest_top = int(img_height * 0.2)
+                        
+                        # 加载当前Logo
+                        current_logo = Image.open(st.session_state.selected_preset_logo)
+                        
+                        # 调整Logo大小
+                        logo_size_factor = logo_size / 100
+                        logo_width = int(chest_width * logo_size_factor * 0.5)
+                        logo_height = int(logo_width * current_logo.height / current_logo.width)
+                        logo_resized = current_logo.resize((logo_width, logo_height), Image.LANCZOS)
+                        
+                        # 计算位置
+                        if logo_position == "Center":
+                            logo_x = chest_left + (chest_width - logo_width) // 2
+                            logo_y = chest_top + (chest_height - logo_height) // 2
+                        elif logo_position == "Top-left":
+                            logo_x = chest_left + 10
+                            logo_y = chest_top + 10
+                        elif logo_position == "Top-right":
+                            logo_x = chest_left + chest_width - logo_width - 10
+                            logo_y = chest_top + 10
+                        elif logo_position == "Bottom-left":
+                            logo_x = chest_left + 10
+                            logo_y = chest_top + chest_height - logo_height - 10
+                        elif logo_position == "Bottom-right":
+                            logo_x = chest_left + chest_width - logo_width - 10
+                            logo_y = chest_top + chest_height - logo_height - 10
+                        else:
+                            # 默认居中
+                            logo_x = chest_left + (chest_width - logo_width) // 2
+                            logo_y = chest_top + (chest_height - logo_height) // 2
+                        
+                        # 设置透明度
+                        if logo_opacity < 100:
+                            logo_data = logo_resized.getdata()
+                            new_data = []
+                            for item in logo_data:
+                                r, g, b, a = item
+                                new_a = int(a * logo_opacity / 100)
+                                new_data.append((r, g, b, new_a))
+                            logo_resized.putdata(new_data)
+                        
+                        # 粘贴Logo到设计
+                        new_design.paste(logo_resized, (logo_x, logo_y), logo_resized)
+                        
+                        # 更新设计和预览
+                        st.session_state.final_design = new_design
+                        st.session_state.current_image = new_design.copy()
+                        
+                        st.success("Logo settings applied successfully!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error applying logo settings: {str(e)}")
     
     # Return to main interface button - modified here
     if st.button("Back to main page"):
