@@ -44,44 +44,39 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
     if not user_preferences:
         user_preferences = "casual fashion t-shirt design"
     
-    # 构建更详细的个性化提示，包含年龄、性别、兴趣和场合
-    personal_info = ""
-    if age_group:
-        personal_info += f"Age group: {age_group}. "
-    if gender:
-        personal_info += f"Gender: {gender}. "
-    if interests:
-        personal_info += f"Interests: {interests}. "
-    if occasion:
-        personal_info += f"Occasion: {occasion}. "
-    
     # Construct the prompt
     prompt = f"""
     As a T-shirt design consultant, please provide personalized design suggestions for a "{user_preferences}" style T-shirt.
     
-    Personal characteristics of the customer: {personal_info}
-    
-    Please provide exactly TWO suggestions for each category:
+    Please provide exactly TWO suggestions for each category in the following format:
 
-    1. Color Suggestions: Recommend 2 suitable colors, including:
-       - Color name and hex code (e.g., Blue (#0000FF))
-       - Why this color suits the style and personal characteristics (2-3 sentences explanation)
+    1. Color Suggestions:
+       Color 1: [Color Name] (#[Hex Code])
+       • [Explanation]
+       Color 2: [Color Name] (#[Hex Code])
+       • [Explanation]
        
-    2. Fabric Texture Suggestions: Recommend 2 suitable fabric types, including:
-       - Specific fabric name (Cotton, Polyester, Cotton-Polyester Blend, Jersey, Linen, or Bamboo)
-       - Brief explanation on why this fabric suits the style and personal needs
+    2. Fabric Texture Suggestions:
+       Fabric 1: [Fabric Name]
+       • [Explanation]
+       Fabric 2: [Fabric Name]
+       • [Explanation]
        
-    3. Text Suggestions: Recommend 2 suitable texts/phrases that resonate with the personal characteristics:
-       - Specific text content
-       - Recommended font style
-       - Brief explanation of suitability for the individual
+    3. Text Suggestions:
+       Text 1: "[Text Content]"
+       • Font: [Font Name]
+       • [Explanation]
+       Text 2: "[Text Content]"
+       • Font: [Font Name]
+       • [Explanation]
        
-    4. Logo Element Suggestions: Recommend 2 suitable design elements that reflect the personal style:
-       - Element description
-       - How it complements the overall style and personal identity
+    4. Logo Element Suggestions:
+       Logo 1: [Description]
+       • [Explanation]
+       Logo 2: [Description]
+       • [Explanation]
        
-    Please ensure to include hex codes for colors, keep content detailed but concise.
-    For text suggestions, place each recommended phrase/text on a separate line and wrap them in quotes, e.g., "Just Do It".
+    Please ensure to include hex codes for colors and keep explanations concise but informative.
     """
     
     try:
@@ -89,7 +84,7 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a professional T-shirt design consultant, providing useful and specific suggestions. Include sufficient details to help users understand your recommendations, while avoiding unnecessary verbosity. Ensure to include hex codes for each color. For text suggestions, please wrap recommended phrases in quotes and place them on separate lines."},
+                {"role": "system", "content": "You are a professional T-shirt design consultant, providing useful and specific suggestions. Follow the exact format specified in the prompt."},
                 {"role": "user", "content": prompt}
             ]
         )
@@ -103,8 +98,8 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
                 # 提取颜色代码的简单方法
                 color_matches = {}
                 
-                # 查找形如 "颜色名 (#XXXXXX)" 的模式
-                color_pattern = r'([^\s\(\)]+)\s*\(#([0-9A-Fa-f]{6})\)'
+                # 查找形如 "Color X: [Color Name] (#[Hex Code])" 的模式
+                color_pattern = r'Color \d+: ([^(]+) \(#([0-9A-Fa-f]{6})\)'
                 matches = re.findall(color_pattern, suggestion_text)
                 
                 if matches:
@@ -115,117 +110,72 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
                     st.session_state.ai_suggested_colors = color_matches
                     
                 # 尝试提取推荐文字
-                text_pattern = r'[""]([^""]+)[""]'
+                text_pattern = r'Text \d+: "([^"]+)"'
                 text_matches = re.findall(text_pattern, suggestion_text)
                 
                 # 保存推荐文字到会话状态
                 if text_matches:
                     st.session_state.ai_suggested_texts = text_matches
-                else:
-                    # 尝试使用另一种模式匹配
-                    text_pattern2 = r'"([^"]+)"'
-                    text_matches = re.findall(text_pattern2, suggestion_text)
-                    if text_matches:
-                        st.session_state.ai_suggested_texts = text_matches
-                    else:
-                        st.session_state.ai_suggested_texts = []
                 
                 # 提取推荐面料类型
-                fabric_types = ["Cotton", "Polyester", "Cotton-Polyester Blend", "Jersey", "Linen", "Bamboo"]
+                fabric_pattern = r'Fabric \d+: ([^\n]+)'
                 fabric_matches = {}
+                fabric_descriptions = re.findall(fabric_pattern, suggestion_text)
                 
-                for fabric in fabric_types:
-                    if fabric in suggestion_text:
-                        # 尝试提取该面料周围的一段文本作为描述
-                        start_idx = suggestion_text.find(fabric)
-                        end_idx = min(start_idx + 200, len(suggestion_text))
-                        desc_text = suggestion_text[start_idx:end_idx]
-                        # 尝试在这段文本中找一个句子作为描述
-                        sentence_end = re.search(r'\.(?=\s|$)', desc_text)
-                        if sentence_end:
-                            desc = desc_text[:sentence_end.end()].strip()
-                        else:
-                            desc = desc_text.split('\n')[0].strip()
-                        fabric_matches[fabric] = desc
+                for fabric in fabric_descriptions:
+                    # 尝试提取该面料周围的一段文本作为描述
+                    start_idx = suggestion_text.find(fabric)
+                    end_idx = min(start_idx + 200, len(suggestion_text))
+                    desc_text = suggestion_text[start_idx:end_idx]
+                    # 尝试在这段文本中找一个句子作为描述
+                    sentence_end = re.search(r'•\s*([^\n]+)', desc_text)
+                    if sentence_end:
+                        desc = sentence_end.group(1).strip()
+                    else:
+                        desc = desc_text.split('\n')[0].strip()
+                    fabric_matches[fabric] = desc
                 
                 # 保存推荐面料到会话状态
                 if fabric_matches:
                     st.session_state.ai_suggested_fabrics = fabric_matches
                 
                 # 提取Logo建议
-                logo_pattern = r'(?:Logo Element Suggestions|Logo|design elements?):(.*?)(?:\d\.|$)'
-                logo_section_match = re.search(logo_pattern, suggestion_text, re.DOTALL | re.IGNORECASE)
+                logo_pattern = r'Logo \d+: ([^\n]+)'
+                logo_matches = {}
+                logo_descriptions = re.findall(logo_pattern, suggestion_text)
                 
-                if logo_section_match:
-                    logo_section = logo_section_match.group(1).strip()
-                    # 提取单个Logo描述
-                    logo_desc_pattern = r'(?:-|\d+\.)\s*(.*?)(?=(?:-|\d+\.)|$)'
-                    logo_descriptions = re.findall(logo_desc_pattern, logo_section, re.DOTALL)
-                    
-                    if logo_descriptions:
-                        # 清理描述（去除多余空格和换行）
-                        cleaned_descriptions = [re.sub(r'\s+', ' ', desc.strip()) for desc in logo_descriptions]
-                        # 保存到会话状态
-                        st.session_state.ai_suggested_logos = cleaned_descriptions
-                        
-                        # 自动生成第一个Logo
-                        try:
-                            if cleaned_descriptions and len(cleaned_descriptions) > 0:
-                                # 获取第一个Logo描述
-                                first_logo_desc = cleaned_descriptions[0]
-                                # 构建完整的提示词
-                                full_prompt = f"Create a Logo design: {first_logo_desc}. Requirements: 1. Use a simple design 2. Suitable for printing 3. Background transparent 4. Clear and recognizable图案清晰可识别"
-                                
-                                # 调用DALL-E生成图像
-                                logo_image = generate_vector_image(full_prompt)
-                                
-                                if logo_image:
-                                    # 保存生成的Logo
-                                    st.session_state.generated_logo = logo_image
-                                    # 保存Logo提示词
-                                    st.session_state.logo_prompt = first_logo_desc
-                                    # 记录logo是自动生成的
-                                    st.session_state.logo_auto_generated = True
-                                    # 添加一个变量记录需要在UI中显示Logo
-                                    st.session_state.show_generated_logo = True
-                                    
-                                    # 在控制台打印日志以便调试
-                                    print(f"Logo自动生成成功: {first_logo_desc}")
-                        except Exception as logo_gen_error:
-                            print(f"自动生成Logo时出错: {logo_gen_error}")
-                            # 如果自动生成失败，不阻止其他功能
+                for logo in logo_descriptions:
+                    # 尝试提取该Logo周围的一段文本作为描述
+                    start_idx = suggestion_text.find(logo)
+                    end_idx = min(start_idx + 200, len(suggestion_text))
+                    desc_text = suggestion_text[start_idx:end_idx]
+                    # 尝试在这段文本中找一个句子作为描述
+                    sentence_end = re.search(r'•\s*([^\n]+)', desc_text)
+                    if sentence_end:
+                        desc = sentence_end.group(1).strip()
+                    else:
+                        desc = desc_text.split('\n')[0].strip()
+                    logo_matches[logo] = desc
+                
+                # 保存Logo建议到会话状态
+                if logo_matches:
+                    st.session_state.ai_suggested_logos = logo_matches
                     
             except Exception as e:
                 print(f"Error parsing: {e}")
                 st.session_state.ai_suggested_texts = []
-                
-            # 使用更好的排版处理文本
-            # 替换标题格式
+            
+            # 格式化建议文本
             formatted_text = suggestion_text
-            # 处理序号段落
-            formatted_text = re.sub(r'(\d\. .*?)(?=\n\d\. |\n*$)', r'<div class="suggestion-section">\1</div>', formatted_text)
-            # 处理子项目符号
-            formatted_text = re.sub(r'- (.*?)(?=\n- |\n[^-]|\n*$)', r'<div class="suggestion-item">• \1</div>', formatted_text)
-            # 强调颜色名称和代码
-            formatted_text = re.sub(r'([^\s\(\)]+)\s*\(#([0-9A-Fa-f]{6})\)', r'<span class="color-name">\1</span> <span class="color-code">(#\2)</span>', formatted_text)
             
-            # 不再使用JavaScript回调，而是简单地加粗文本
-            formatted_text = re.sub(r'[""]([^""]+)[""]', r'"<strong>\1</strong>"', formatted_text)
-            formatted_text = re.sub(r'"([^"]+)"', r'"<strong>\1</strong>"', formatted_text)
-            
-            suggestion_with_style = f"""
+            # 添加HTML样式
+            formatted_text = f"""
             <div class="suggestion-container">
             {formatted_text}
             </div>
             """
             
-            # 打印调试信息，确认Logo是否自动生成
-            if hasattr(st.session_state, 'generated_logo'):
-                print("Logo generated successfully and saved to session_state")
-            else:
-                print("Failed to generate Logo or not saved to session_state")
-            
-            return suggestion_with_style
+            return formatted_text
         else:
             return "can not get AI suggestions, please try again later."
     except Exception as e:
