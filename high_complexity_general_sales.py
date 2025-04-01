@@ -1561,7 +1561,7 @@ def show_high_complexity_general_sales():
             text_style = st.multiselect("Text style:", ["Bold", "Italic", "Underline", "Shadow", "Outline"], default=["Bold"])
             
             # 添加动态文字大小滑块 - 增加最大值
-            text_size = st.slider("Text size:", 20, 400, 100, key="ai_text_size")
+            text_size = st.slider("Text size:", 20, 400, 39, key="ai_text_size")
             
             # 添加文字效果选项
             text_effect = st.selectbox("Text effect:", ["None", "Bent", "Arch", "Wave", "3D", "Gradient"])
