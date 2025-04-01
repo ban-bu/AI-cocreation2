@@ -1525,6 +1525,16 @@ def show_high_complexity_general_sales():
                 
         # 文字设计部分 - 独立出来，确保始终显示
         with st.expander("✍️ Text Design", expanded=True):
+            # 显示AI建议的文本选项
+            if 'ai_suggested_texts' in st.session_state and st.session_state.ai_suggested_texts:
+                st.markdown("**AI Suggested Text:**")
+                text_cols = st.columns(2)
+                for i, text in enumerate(st.session_state.ai_suggested_texts):
+                    with text_cols[i % 2]:
+                        if st.button(f"Use: {text}", key=f"text_suggestion_{i}"):
+                            st.session_state.temp_text_selection = text
+                            st.rerun()
+            
             # 文字选项
             text_col1, text_col2 = st.columns([2, 1])
             
