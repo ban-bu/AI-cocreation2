@@ -384,14 +384,6 @@ def show_high_complexity_general_sales():
     st.markdown("### High Task Complexity-General Sales - Create Your Unique T-shirt Design")
     
     # 添加General Sales情境描述
-    st.info("""
-    **General Sales Environment**
-    
-    Welcome to our regular T-shirt customization service available in our standard online store. 
-    You are browsing our website from the comfort of your home or office, with no time pressure. 
-    Take your time to explore the design options and create a T-shirt that matches your personal style.
-    This is a typical online shopping experience where you can customize at your own pace.
-    """)
     
     # 任务复杂度说明
     st.markdown("""
@@ -1528,6 +1520,35 @@ def show_high_complexity_general_sales():
                 
         # 文字设计部分 - 独立出来，确保始终显示
         with st.expander("✍️ Text Design", expanded=True):
+            # 显示AI建议的文字候选项
+            if 'ai_suggested_texts' in st.session_state and st.session_state.ai_suggested_texts:
+                st.markdown("**AI Suggested Text Options:**")
+                
+                # 创建候选项网格布局
+                text_suggestions = st.session_state.ai_suggested_texts
+                suggestion_cols = st.columns(min(3, len(text_suggestions)))
+                
+                for i, suggestion in enumerate(text_suggestions):
+                    with suggestion_cols[i % 3]:
+                        # 创建可点击的候选项框
+                        st.markdown(
+                            f"""
+                            <div style="
+                                padding: 10px;
+                                margin: 5px 0;
+                                border: 1px solid #ddd;
+                                border-radius: 5px;
+                                background-color: #f8f9fa;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                                text-align: center;
+                            " onclick="document.getElementById('ai_text_suggestion').value = '{suggestion}'; document.getElementById('ai_text_suggestion').dispatchEvent(new Event('input'));">
+                            {suggestion}
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+            
             # 文字选项
             text_col1, text_col2 = st.columns([2, 1])
             
