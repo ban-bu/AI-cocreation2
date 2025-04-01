@@ -1355,6 +1355,8 @@ def show_high_complexity_general_sales():
                     cursor: pointer;
                     color: #0066cc;
                     transition: all 0.2s;
+                    padding: 2px 5px;
+                    border-radius: 3px;
                 }
                 .suggested-text:hover {
                     background-color: #e6f2ff;
@@ -1363,7 +1365,29 @@ def show_high_complexity_general_sales():
                 </style>
                 """, unsafe_allow_html=True)
                 
-                st.markdown(st.session_state.ai_suggestions, unsafe_allow_html=True)
+                # 添加JavaScript代码来处理文本点击
+                st.markdown("""
+                <script>
+                function fillTextInput(text) {
+                    // 找到文本输入框并设置值
+                    const textInput = document.querySelector('input[aria-label="Describe your preferred style or usage"]');
+                    if (textInput) {
+                        textInput.value = text;
+                        // 触发input事件以确保Streamlit检测到变化
+                        textInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+                </script>
+                """, unsafe_allow_html=True)
+                
+                # 处理AI建议中的文本，添加点击功能
+                suggestions_html = st.session_state.ai_suggestions
+                # 将引号中的文本转换为可点击的链接
+                suggestions_html = re.sub(r'"([^"]+)"', 
+                    r'<span class="suggested-text" onclick="fillTextInput(\'\1\')">"\1"</span>', 
+                    suggestions_html)
+                
+                st.markdown(suggestions_html, unsafe_allow_html=True)
 
         # 将应用建议的部分移出条件判断，确保始终显示
         with st.expander("🎨 Color & Fabric", expanded=True):
