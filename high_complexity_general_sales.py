@@ -46,29 +46,15 @@ def get_ai_design_suggestions(user_preferences=None):
     
     # Construct the prompt
     prompt = f"""
-    As a T-shirt design consultant, please provide personalized design suggestions for a "{user_preferences}" style T-shirt.
+    As a T-shirt design consultant, please provide personalized color suggestions for a "{user_preferences}" style T-shirt.
     
-    Please provide the following design suggestions:
+    Please provide the following color suggestions:
 
     1. Color Suggestions: Recommend 2 suitable colors, including:
        - Color name and hex code (e.g., Blue (#0000FF))
        - Why this color suits the style (2-3 sentences explanation)
        
-    2. Fabric Texture Suggestions: Recommend 2 suitable fabric types, including:
-       - Specific fabric name (Cotton, Polyester, Cotton-Polyester Blend, Jersey, Linen, or Bamboo)
-       - Brief explanation on why this fabric suits the style
-       
-    3. Text Suggestions: Recommend 2 suitable texts/phrases:
-       - Specific text content
-       - Recommended font style
-       - Brief explanation of suitability
-       
-    4. Logo Element Suggestions: Recommend 2 suitable design elements:
-       - Element description
-       - How it complements the overall style
-       
     Please ensure to include hex codes for colors, keep content detailed but concise.
-    For text suggestions, place each recommended phrase/text on a separate line and wrap them in quotes, e.g., "Just Do It".
     """
     
     try:
@@ -1310,6 +1296,42 @@ def show_high_complexity_general_sales():
                     )
                     st.session_state.ai_suggestions = suggestions
                     st.success("AI suggestions have been applied to your design options!")
+                    
+                    # 显示AI生成的建议内容
+                    st.markdown("#### AI Design Suggestions")
+                    st.markdown(suggestions, unsafe_allow_html=True)
+                    
+                    # 添加样式
+                    st.markdown("""
+                    <style>
+                    .suggestion-container {
+                        background-color: #f8f9fa;
+                        padding: 20px;
+                        border-radius: 10px;
+                        margin: 10px 0;
+                        border-left: 4px solid #2196F3;
+                    }
+                    .suggestion-section {
+                        margin: 15px 0;
+                        padding: 10px;
+                        background-color: white;
+                        border-radius: 5px;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    }
+                    .suggestion-item {
+                        margin: 8px 0;
+                        padding-left: 20px;
+                    }
+                    .color-name {
+                        font-weight: bold;
+                        color: #1976D2;
+                    }
+                    .color-code {
+                        font-family: monospace;
+                        color: #666;
+                    }
+                    </style>
+                    """, unsafe_allow_html=True)
 
         # 将应用建议的部分移出条件判断，确保始终显示
         with st.expander("🎨 Color & Fabric", expanded=True):
