@@ -781,44 +781,37 @@ def show_high_complexity_general_sales():
                             
                             # 文本渲染逻辑
                             if font:
-                                # 处理文本换行 - 当文本太长时
+                                # 处理文本换行 - 使用更简单的方法
                                 max_text_width = int(img_width * 0.7)  # 最大文本宽度为T恤宽度的70%
                                 lines = []
+                                current_line = ""
+                                
+                                # 按空格分割文本
                                 words = text_info["text"].split()
                                 
-                                if not words:
-                                    lines = [""]
-                                else:
-                                    current_line = words[0]
+                                for word in words:
+                                    # 测试添加新词后的宽度
+                                    test_line = current_line + " " + word if current_line else word
+                                    test_bbox = text_draw.textbbox((0, 0), test_line, font=font)
+                                    test_width = test_bbox[2] - test_bbox[0]
                                     
-                                    # 逐词检查并换行
-                                    for word in words[1:]:
-                                        test_line = current_line + " " + word
-                                        # 检查添加这个词后的宽度
-                                        test_bbox = text_draw.textbbox((0, 0), test_line, font=font)
-                                        test_width = test_bbox[2] - test_bbox[0]
-                                        
-                                        if test_width <= max_text_width:
-                                            current_line = test_line
-                                        else:
-                                            # 如果当前行太长，尝试在合适的位置换行
-                                            if len(current_line) > 0:
-                                                # 尝试在最后一个空格处换行
-                                                last_space = current_line.rfind(" ")
-                                                if last_space > 0:
-                                                    lines.append(current_line[:last_space])
-                                                    current_line = current_line[last_space + 1:] + " " + word
-                                                else:
-                                                    # 如果没有空格，直接在当前词处换行
-                                                    lines.append(current_line)
-                                                    current_line = word
-                                            else:
-                                                # 如果当前行为空，直接添加新词
-                                                current_line = word
+                                    if test_width <= max_text_width:
+                                        # 如果宽度合适，添加到当前行
+                                        current_line = test_line
+                                    else:
+                                        # 如果当前行不为空，保存它
+                                        if current_line:
+                                            lines.append(current_line)
+                                        # 开始新行
+                                        current_line = word
                                 
                                 # 添加最后一行
                                 if current_line:
                                     lines.append(current_line)
+                                
+                                # 如果没有行，添加空行
+                                if not lines:
+                                    lines = [""]
                                 
                                 # 计算总高度和最大宽度
                                 line_height = render_size * 1.2  # 行高略大于字体大小
@@ -1738,44 +1731,37 @@ def show_high_complexity_general_sales():
                             
                             # 文本渲染逻辑
                             if font:
-                                # 处理文本换行 - 当文本太长时
+                                # 处理文本换行 - 使用更简单的方法
                                 max_text_width = int(img_width * 0.7)  # 最大文本宽度为T恤宽度的70%
                                 lines = []
+                                current_line = ""
+                                
+                                # 按空格分割文本
                                 words = text_content.split()
                                 
-                                if not words:
-                                    lines = [""]
-                                else:
-                                    current_line = words[0]
+                                for word in words:
+                                    # 测试添加新词后的宽度
+                                    test_line = current_line + " " + word if current_line else word
+                                    test_bbox = text_draw.textbbox((0, 0), test_line, font=font)
+                                    test_width = test_bbox[2] - test_bbox[0]
                                     
-                                    # 逐词检查并换行
-                                    for word in words[1:]:
-                                        test_line = current_line + " " + word
-                                        # 检查添加这个词后的宽度
-                                        test_bbox = text_draw.textbbox((0, 0), test_line, font=font)
-                                        test_width = test_bbox[2] - test_bbox[0]
-                                        
-                                        if test_width <= max_text_width:
-                                            current_line = test_line
-                                        else:
-                                            # 如果当前行太长，尝试在合适的位置换行
-                                            if len(current_line) > 0:
-                                                # 尝试在最后一个空格处换行
-                                                last_space = current_line.rfind(" ")
-                                                if last_space > 0:
-                                                    lines.append(current_line[:last_space])
-                                                    current_line = current_line[last_space + 1:] + " " + word
-                                                else:
-                                                    # 如果没有空格，直接在当前词处换行
-                                                    lines.append(current_line)
-                                                    current_line = word
-                                            else:
-                                                # 如果当前行为空，直接添加新词
-                                                current_line = word
+                                    if test_width <= max_text_width:
+                                        # 如果宽度合适，添加到当前行
+                                        current_line = test_line
+                                    else:
+                                        # 如果当前行不为空，保存它
+                                        if current_line:
+                                            lines.append(current_line)
+                                        # 开始新行
+                                        current_line = word
                                 
                                 # 添加最后一行
                                 if current_line:
                                     lines.append(current_line)
+                                
+                                # 如果没有行，添加空行
+                                if not lines:
+                                    lines = [""]
                                 
                                 # 计算总高度和最大宽度
                                 line_height = render_size * 1.2  # 行高略大于字体大小
