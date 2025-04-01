@@ -61,9 +61,9 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
     
     Personal characteristics of the customer: {personal_info}
     
-    Please provide the following design suggestions:
+    Please provide exactly TWO suggestions for each category:
 
-    1. Color Suggestions: Recommend 3 suitable colors, including:
+    1. Color Suggestions: Recommend 2 suitable colors, including:
        - Color name and hex code (e.g., Blue (#0000FF))
        - Why this color suits the style and personal characteristics (2-3 sentences explanation)
        
@@ -1314,46 +1314,13 @@ def show_high_complexity_general_sales():
             # 添加用户偏好输入
             user_preference = st.text_input("Describe your preferred style or usage", placeholder="For example: sports style, business场合, casual daily, etc.")
             
-            # 添加更详细的个人特征输入
-            col_per1, col_per2 = st.columns(2)
-            
-            with col_per1:
-                # 添加年龄段选择
-                age_options = ["", "Under 18", "18-24", "25-34", "35-44", "45-54", "55+"]
-                age_group = st.selectbox("Age group:", age_options)
-                
-                # 添加兴趣爱好输入
-                interests = st.text_input("Your interests or hobbies:", placeholder="E.g., sports, music, art, gaming...")
-            
-            with col_per2:
-                # 添加性别选择
-                gender_options = ["", "Male", "Female", "Non-binary", "Prefer not to say"]
-                gender = st.selectbox("Gender:", gender_options)
-                
-                # 添加场合选择
-                occasion_options = ["", "Daily casual", "Work/Business", "Sports/Exercise", "Party/Club", "Travel", "Special event"]
-                occasion = st.selectbox("Occasion for wearing:", occasion_options)
-            
-            col_pref1, col_pref2 = st.columns([1, 1])
-            with col_pref1:
-                # 添加预设风格选择
-                preset_styles = ["", "Fashion casual", "Business formal", "Sports style", "Rock and roll", "Japanese anime", "Artistic retro", "American street"]
-                selected_preset = st.selectbox("Or select a preset style:", preset_styles)
-                if selected_preset and not user_preference:
-                    user_preference = selected_preset
-            
-            with col_pref2:
-                # 添加获取建议按钮
-                if st.button("Get personalized AI suggestions", key="get_ai_advice"):
-                    with st.spinner("Generating personalized design suggestions..."):
-                        suggestions = get_ai_design_suggestions(
-                            user_preferences=user_preference,
-                            age_group=age_group,
-                            gender=gender,
-                            interests=interests,
-                            occasion=occasion
-                        )
-                        st.session_state.ai_suggestions = suggestions
+            # 添加获取建议按钮
+            if st.button("Get personalized AI suggestions", key="get_ai_advice"):
+                with st.spinner("Generating personalized design suggestions..."):
+                    suggestions = get_ai_design_suggestions(
+                        user_preferences=user_preference
+                    )
+                    st.session_state.ai_suggestions = suggestions
             
             # 显示AI建议
             if st.session_state.ai_suggestions:
