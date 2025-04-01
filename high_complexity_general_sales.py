@@ -1991,13 +1991,20 @@ def show_high_complexity_general_sales():
             
             # 如果没有Logo，显示生成Logo的选项
             if 'applied_logo' not in st.session_state or st.session_state.applied_logo is None:
-                st.markdown("**Generate a Logo:**")
-                logo_prompt = st.text_input("Describe your desired logo", placeholder="e.g., a minimalist mountain logo, a modern abstract design, a simple geometric pattern...")
-                
-                if st.button("Generate Logo"):
-                    if logo_prompt:
+                # 检查是否有AI建议的Logo
+                if 'ai_suggested_logos' in st.session_state and st.session_state.ai_suggested_logos:
+                    st.markdown("**AI Suggested Logo:**")
+                    # 显示AI建议的Logo描述
+                    for i, logo_desc in enumerate(st.session_state.ai_suggested_logos, 1):
+                        st.markdown(f"{i}. {logo_desc}")
+                    
+                    # 使用第一个建议的Logo描述生成Logo
+                    if st.button("Generate Logo from AI suggestion"):
                         with st.spinner("Generating logo with AI..."):
                             try:
+                                # 使用第一个AI建议的Logo描述
+                                logo_prompt = st.session_state.ai_suggested_logos[0]
+                                
                                 # 构建完整的提示词
                                 full_prompt = f"Create a Logo design: {logo_prompt}. Requirements: 1. Use a simple design 2. Suitable for printing 3. Background transparent 4. Clear and recognizable pattern"
                                 
@@ -2061,8 +2068,8 @@ def show_high_complexity_general_sales():
                                     st.error("Failed to generate logo. Please try again.")
                             except Exception as e:
                                 st.error(f"Error generating logo: {str(e)}")
-                    else:
-                        st.warning("Please enter a logo description.")
+                else:
+                    st.info("Please get AI suggestions first to generate a logo.")
             else:
                 # 如果已有Logo，显示修改和调整功能
                 st.markdown("**Modify Current Logo:**")
