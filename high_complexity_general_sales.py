@@ -107,7 +107,10 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
                     
                 # 保存到会话状态
                 if color_matches:
-                    st.session_state.ai_suggested_colors = color_matches
+                    color_dict = {name.strip(): f"#{code}" for name, code in color_matches}
+                    st.session_state.ai_suggested_colors = color_dict
+                else:
+                    st.session_state.ai_suggested_colors = {}
                     
                 # 尝试提取推荐文字
                 text_pattern = r'Text \d+: "([^"]+)"'
