@@ -168,13 +168,20 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
             # 格式化建议文本
             formatted_text = suggestion_text
             
-            # 添加HTML样式
-            formatted_text = f"""
-            <div class="suggestion-container">
-            {formatted_text}
-            </div>
-            """
+            # 处理序号段落，确保标题大写
+            formatted_text = re.sub(r'(\d\. .*?)(?=\n\d\. |\n*$)', lambda m: f'<div class="suggestion-section">{m.group(1).upper()}</div>', formatted_text)
             
+            # 处理子项目符号
+            formatted_text = re.sub(r'- (.*?)(?=\n- |\n[^-]|\n*$)', r'<div class="suggestion-item">• \1</div>', formatted_text)
+            
+            # 强调颜色名称和代码
+            formatted_text = re.sub(r'([^\s\(\)]+)\s*\(#([0-9A-Fa-f]{6})\)', r'<span class="color-name">\1</span> <span class="color-code">(#\2)</span>', formatted_text)
+            
+            # 不再使用JavaScript回调，而是简单地加粗文本
+            formatted_text = re.sub(r'[""]([^""]+)[""]', r'"<strong>\1</strong>"', formatted_text)
+            formatted_text = re.sub(r'"([^"]+)"', r'"<strong>\1</strong>"', formatted_text)
+            
+            # 直接返回格式化后的文本，不添加suggestion-container
             return formatted_text
         else:
             return "can not get AI suggestions, please try again later."
@@ -1262,7 +1269,7 @@ def show_high_complexity_general_sales():
         with st.expander("🤖 AI design suggestions", expanded=True):
             st.markdown("#### Get AI Suggestions")
             # 添加用户偏好输入
-            user_preference = st.text_input("Describe your preferred style or usage", placeholder="For example: sports style, business场合, casual daily, etc.")
+            user_preference = st.text_input("Describe your preferred style or usage", placeholder="For example: sports style, business, casual daily, etc.")
             
             # 添加获取建议按钮
             if st.button("Get personalized AI suggestions", key="get_ai_advice"):
@@ -1277,17 +1284,13 @@ def show_high_complexity_general_sales():
                 # 添加格式化的建议显示
                 st.markdown("""
                 <style>
-                .suggestion-container {
-                    background-color: #f8f9fa;
-                    border-left: 4px solid #4CAF50;
-                    padding: 15px;
-                    margin: 10px 0;
-                    border-radius: 0 5px 5px 0;
-                }
                 .suggestion-section {
                     margin-bottom: 12px;
                     font-weight: 500;
                     text-transform: uppercase;
+                    color: #1976D2;
+                    font-size: 1.1em;
+                    padding: 5px 0;
                 }
                 .suggestion-item {
                     margin-left: 15px;
