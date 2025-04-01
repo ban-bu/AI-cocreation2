@@ -1552,8 +1552,8 @@ def show_high_complexity_general_sales():
                     st.session_state.ai_text_suggestion = st.session_state.temp_text_selection
                     del st.session_state.temp_text_selection
                 
-                # 创建文本输入框，使用key参数
-                text_content = st.text_input("Enter or copy AI recommended text", key="ai_text_suggestion")
+                # 创建文本输入框，使用value参数
+                text_content = st.text_input("Enter or copy AI recommended text", value=st.session_state.ai_text_suggestion)
             
             with text_col2:
                 text_color = st.color_picker("Text color:", "#000000", key="ai_text_color")
