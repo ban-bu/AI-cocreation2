@@ -1312,7 +1312,7 @@ def show_high_complexity_general_sales():
         with st.expander("🤖 AI design suggestions", expanded=True):
             st.markdown("#### Get AI Suggestions")
             # 添加用户偏好输入
-            user_preference = st.text_input("Describe your preferred style or usage", placeholder="For example: sports style, business场合, casual daily, etc.")
+            user_preference = st.text_input("Describe your preferred style or usage", placeholder="For example: sports style, business, casual daily, etc.")
             
             # 添加获取建议按钮
             if st.button("Get AI suggestions", key="get_ai_advice"):
