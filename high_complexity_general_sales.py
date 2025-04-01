@@ -24,6 +24,7 @@ import math
 # 导入面料纹理模块
 from fabric_texture import apply_fabric_texture
 import uuid
+from survey_page import show_survey_page, initialize_experiment_data
 
 # API配置信息 - 实际使用时应从主文件传入或使用环境变量
 API_KEY = "sk-lNVAREVHjj386FDCd9McOL7k66DZCUkTp6IbV0u9970qqdlg"
