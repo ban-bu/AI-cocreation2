@@ -1337,49 +1337,7 @@ def show_high_complexity_general_sales():
                         user_preferences=user_preference
                     )
                     st.session_state.ai_suggestions = suggestions
-            
-            # 显示AI建议
-            if st.session_state.ai_suggestions:
-                # 添加格式化的建议显示
-                st.markdown("""
-                <style>
-                .suggestion-container {
-                    background-color: #f8f9fa;
-                    border-left: 4px solid #4CAF50;
-                    padding: 15px;
-                    margin: 10px 0;
-                    border-radius: 0 5px 5px 0;
-                }
-                .suggestion-section {
-                    margin-bottom: 12px;
-                    font-weight: 500;
-                }
-                .suggestion-item {
-                    margin-left: 15px;
-                    margin-bottom: 8px;
-                }
-                .color-name {
-                    font-weight: 500;
-                }
-                .color-code {
-                    font-family: monospace;
-                    background-color: #f1f1f1;
-                    padding: 2px 4px;
-                    border-radius: 3px;
-                }
-                .suggested-text {
-                    cursor: pointer;
-                    color: #0066cc;
-                    transition: all 0.2s;
-                }
-                .suggested-text:hover {
-                    background-color: #e6f2ff;
-                    text-decoration: underline;
-                }
-                </style>
-                """, unsafe_allow_html=True)
-                
-                st.markdown(st.session_state.ai_suggestions, unsafe_allow_html=True)
+                    st.success("AI suggestions have been applied to your design options!")
 
         # 将应用建议的部分移出条件判断，确保始终显示
         with st.expander("🎨 Color & Fabric", expanded=True):
@@ -1510,18 +1468,6 @@ def show_high_complexity_general_sales():
                 # 应用面料纹理按钮
                 texture_col1, texture_col2 = st.columns([3, 1])
                 with texture_col1:
-                    # 显示面料类型说明
-                    fabric_descriptions = {
-                        "Cotton": "Soft natural fiber with good breathability",
-                        "Polyester": "Durable synthetic fabric that resists wrinkles",
-                        "Cotton-Polyester Blend": "Combines comfort and durability",
-                        "Jersey": "Stretchy knit fabric with good drape",
-                        "Linen": "Light natural fabric with excellent cooling properties",
-                        "Bamboo": "Sustainable fabric with silky soft texture"
-                    }
-                    st.markdown(f"*{fabric_descriptions.get(fabric_type, '')}*")
-                
-                with texture_col2:
                     if st.button("Apply Texture"):
                         # 更新存储的面料值
                         old_fabric = st.session_state.fabric_type
@@ -2114,15 +2060,9 @@ def show_high_complexity_general_sales():
                 # 添加重新生成Logo的功能
                 st.markdown("**Want to try a different logo?**")
                 
-                # 显示AI建议的Logo描述
-                if 'ai_suggested_logos' in st.session_state and st.session_state.ai_suggested_logos:
-                    st.markdown("**AI Suggested Logo Descriptions:**")
-                    for i, logo_desc in enumerate(st.session_state.ai_suggested_logos):
-                        st.markdown(f"{i+1}. {logo_desc}")
-                
                 # 添加Logo提示词输入框（默认为空）
                 logo_prompt = st.text_input(
-                    "Enter new logo description or use AI suggestions above",
+                    "Enter new logo description",
                     value="",
                     key="logo_prompt_input"
                 )
