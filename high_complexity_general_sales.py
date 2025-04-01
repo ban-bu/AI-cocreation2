@@ -102,6 +102,8 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
                 color_pattern = r'Color \d+: ([^(]+) \(#([0-9A-Fa-f]{6})\)'
                 matches = re.findall(color_pattern, suggestion_text)
                 
+                print(f"Found color matches: {matches}")  # 调试信息
+                
                 if matches:
                     color_matches = {name.strip(): f"#{code}" for name, code in matches}
                     
@@ -109,8 +111,10 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
                 if color_matches:
                     color_dict = {name.strip(): f"#{code}" for name, code in color_matches}
                     st.session_state.ai_suggested_colors = color_dict
+                    print(f"Saved colors to session state: {color_dict}")  # 调试信息
                 else:
                     st.session_state.ai_suggested_colors = {}
+                    print("No colors found, using empty dict")  # 调试信息
                     
                 # 尝试提取推荐文字
                 text_pattern = r'Text \d+: "([^"]+)"'
@@ -1332,36 +1336,32 @@ def show_high_complexity_general_sales():
                 </style>
                 """, unsafe_allow_html=True)
                 
-                # 添加JavaScript代码来处理文本点击
-                st.markdown("""
-                <script>
-                function fillTextInput(text) {
-                    // 找到文本输入框并设置值
-                    const textInput = document.querySelector('input[aria-label="Enter or copy AI recommended text"]');
-                    if (textInput) {
-                        textInput.value = text;
-                        // 触发input事件以确保Streamlit检测到变化
-                        textInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                }
-                </script>
-                """, unsafe_allow_html=True)
+                # 显示原始AI响应，用于调试
+                if st.checkbox("Show raw AI response", value=False):
+                    st.code(st.session_state.ai_suggestions)
                 
-                # 处理AI建议中的文本，添加点击功能
-                suggestions_html = st.session_state.ai_suggestions
-                # 将引号中的文本转换为可点击的链接
-                suggestions_html = re.sub(r'"([^"]+)"', 
-                    r'<span class="suggested-text" onclick="fillTextInput(\'\1\')">"\1"</span>', 
-                    suggestions_html)
-                
-                st.markdown(suggestions_html, unsafe_allow_html=True)
-                
-                # 自动填充第一个文本建议
-                if 'ai_suggested_texts' in st.session_state and st.session_state.ai_suggested_texts:
-                    # 获取第一个文本建议
-                    first_text = st.session_state.ai_suggested_texts[0]
-                    # 设置到会话状态
-                    st.session_state.temp_text_selection = first_text
+                # 创建容器显示简化内容
+                with st.container():
+                    # 颜色部分处理
+                    st.markdown("<div class='ai-suggestion-header'>🤖 AI Recommended Colors</div>", unsafe_allow_html=True)
+                    st.markdown("*These colors are suggested by AI based on your style preferences*")
+                    
+                    # 直接使用st.session_state.ai_suggested_colors
+                    if 'ai_suggested_colors' in st.session_state and st.session_state.ai_suggested_colors:
+                        for i, (color_name, hex_code) in enumerate(st.session_state.ai_suggested_colors.items()):
+                            col1, col2, col3 = st.columns([1, 4, 3])
+                            with col1:
+                                st.markdown(f"""
+                                <div class="color-box" style="background-color: {hex_code};"></div>
+                                """, unsafe_allow_html=True)
+                            with col2:
+                                st.write(f"{color_name}")
+                            with col3:
+                                if st.button(f"Try Color", key=f"ai_color_{i}_{hex_code.replace('#', '')}"):
+                                    st.session_state.shirt_color_hex = hex_code
+                                    st.rerun()
+                    else:
+                        st.info("No color suggestions available")
 
         # 将应用建议的部分移出条件判断，确保始终显示
         with st.expander("🎨 Color & Fabric", expanded=True):
@@ -1405,6 +1405,11 @@ def show_high_complexity_general_sales():
                     if st.button(f"Apply {color_name}", key=f"apply_{i}"):
                         st.session_state.shirt_color_hex = color_hex
                         st.rerun()
+            
+            # 添加调试信息
+            if st.checkbox("Show color debug info", value=False):
+                st.write("Current AI suggested colors:", st.session_state.ai_suggested_colors)
+                st.write("Raw AI suggestions:", st.session_state.ai_suggestions)
             
             # 添加自定义颜色调整功能
             st.markdown("##### Custom color")
