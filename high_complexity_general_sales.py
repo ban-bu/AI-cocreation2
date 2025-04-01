@@ -1972,8 +1972,8 @@ def show_high_complexity_general_sales():
                     st.markdown(f"*{logo_desc}*")
                     st.markdown(f"_{logo_explanation}_")
                 
-                # 自动生成Logo按钮
-                if st.button("Generate Logo from AI Suggestions"):
+                # 自动生成Logo
+                if not hasattr(st.session_state, 'generated_logo'):
                     with st.spinner("Generating logo based on AI suggestions..."):
                         try:
                             # 使用第一个Logo建议作为提示词
@@ -1985,13 +1985,10 @@ def show_high_complexity_general_sales():
                                 st.session_state.generated_logo = generated_logo
                                 st.session_state.show_generated_logo = True
                                 st.session_state.logo_prompt = logo_prompt
-                                st.success("Logo generated successfully!")
                             else:
                                 st.error("Failed to generate logo. Please try again.")
                         except Exception as e:
                             st.error(f"Error generating logo: {str(e)}")
-            else:
-                st.info("Please get AI suggestions first to generate a logo.")
             
             # 显示生成的Logo
             if hasattr(st.session_state, 'show_generated_logo') and st.session_state.show_generated_logo:
@@ -2021,7 +2018,7 @@ def show_high_complexity_general_sales():
                             "size": logo_size,
                             "position": logo_position,
                             "opacity": logo_opacity,
-                            "prompt": logo_prompt
+                            "prompt": st.session_state.logo_prompt
                         }
                         
                         # 保存图像到临时文件
@@ -2032,6 +2029,8 @@ def show_high_complexity_general_sales():
                         st.rerun()
                     except Exception as e:
                         st.error(f"Error applying logo: {str(e)}")
+            else:
+                st.info("Please get AI suggestions first to generate a logo.")
     
     # Return to main interface button - modified here
     if st.button("Back to main page"):
