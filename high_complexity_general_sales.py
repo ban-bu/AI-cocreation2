@@ -50,7 +50,7 @@ def get_ai_design_suggestions(user_preferences=None):
     
     Please provide the following design suggestions:
 
-    1. Color Suggestions: Recommend 3 suitable colors, including:
+    1. Color Suggestions: Recommend 2 suitable colors, including:
        - Color name and hex code (e.g., Blue (#0000FF))
        - Why this color suits the style (2-3 sentences explanation)
        
