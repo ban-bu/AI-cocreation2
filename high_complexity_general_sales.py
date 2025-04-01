@@ -2093,21 +2093,19 @@ def show_high_complexity_general_sales():
                             st.session_state.current_image = final_design.copy()
                             
                             # 保存Logo信息
-                        st.session_state.applied_logo = {
-                            "source": "ai",
-                            "path": "temp_logo.png",
-                            "size": logo_size,
-                            "position": logo_position,
-                            "opacity": logo_opacity
-                        }
-                        
+                            st.session_state.applied_logo = {
+                                "source": "ai",
+                                "path": "temp_logo.png",
+                                "size": logo_size,
+                                "position": logo_position,
+                                "opacity": logo_opacity
+                            }
+                            
                             st.success("Logo has been applied to the design successfully!")
-                        st.rerun()
+                            st.rerun()
                         except Exception as e:
-                            st.error(f"Logo合成时出错: {str(e)}")
-                    except Exception as e:
-                        st.error(f"应用Logo时出错: {str(e)}")
-    
+                            st.error(f"Logo应用失败: {str(e)}")
+
                 # 添加分隔线
                 st.markdown("---")
                 
