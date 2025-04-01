@@ -1981,12 +1981,6 @@ def show_high_complexity_general_sales():
         with st.expander("🖼️ Logo Design", expanded=True):
             st.markdown("#### Logo Design")
             
-            # 显示AI建议的Logo描述
-            if 'ai_suggested_logos' in st.session_state and st.session_state.ai_suggested_logos:
-                st.markdown("**AI Suggested Logo Descriptions:**")
-                for i, logo_desc in enumerate(st.session_state.ai_suggested_logos):
-                    st.markdown(f"{i+1}. {logo_desc}")
-            
             # 自动生成的Logo显示
             if hasattr(st.session_state, 'show_generated_logo') and st.session_state.show_generated_logo:
                 st.markdown("**Current Logo:**")
@@ -2027,6 +2021,12 @@ def show_high_complexity_general_sales():
                 
                 # 添加重新生成Logo的功能
                 st.markdown("**Want to try a different logo?**")
+                
+                # 显示AI建议的Logo描述
+                if 'ai_suggested_logos' in st.session_state and st.session_state.ai_suggested_logos:
+                    st.markdown("**AI Suggested Logo Descriptions:**")
+                    for i, logo_desc in enumerate(st.session_state.ai_suggested_logos):
+                        st.markdown(f"{i+1}. {logo_desc}")
                 
                 # 添加Logo提示词输入框（默认为空）
                 logo_prompt = st.text_input(
