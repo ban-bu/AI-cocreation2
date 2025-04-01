@@ -139,7 +139,7 @@ def get_ai_design_suggestions(user_preferences=None):
                 if fabric_matches:
                     st.session_state.ai_suggested_fabrics = fabric_matches
                 
-                # 提取Logo建议
+                # 提取Logo建议并自动生成Logo
                 logo_pattern = r'(?:Logo Element Suggestions|Logo|design elements?):(.*?)(?:\d\.|$)'
                 logo_section_match = re.search(logo_pattern, suggestion_text, re.DOTALL | re.IGNORECASE)
                 
@@ -178,6 +178,7 @@ def get_ai_design_suggestions(user_preferences=None):
                                     
                                     # 在控制台打印日志以便调试
                                     print(f"Logo自动生成成功: {first_logo_desc}")
+                                    
                         except Exception as logo_gen_error:
                             print(f"自动生成Logo时出错: {logo_gen_error}")
                             # 如果自动生成失败，不阻止其他功能
@@ -1971,55 +1972,42 @@ def show_high_complexity_general_sales():
 
         # Logo设计部分
         with st.expander("🖼️ Logo Design", expanded=True):
-            st.markdown("#### Add Logo to Your Design")
-            
-            # 添加生成新Logo的按钮
-            if st.button("🎨 Generate New Logo"):
-                with st.spinner("Generating new logo based on your preferences..."):
-                    try:
-                        # 使用当前的用户偏好生成新的Logo
-                        if 'user_preference' in st.session_state:
-                            user_pref = st.session_state.user_preference
-                            # 构建Logo生成提示词
-                            logo_prompt = f"Create a T-shirt logo design for: {user_pref}. Requirements: 1. Simple and clean design 2. Suitable for printing 3. Transparent background 4. Clear and recognizable图案清晰可识别"
-                            
-                            # 生成新的Logo
-                            new_logo = generate_vector_image(logo_prompt)
-                            
-                            if new_logo:
-                                # 更新Logo相关状态
-                                st.session_state.generated_logo = new_logo
-                                st.session_state.logo_prompt = logo_prompt
-                                st.session_state.logo_auto_generated = True
-                                st.session_state.show_generated_logo = True
-                                st.success("New logo generated successfully!")
-                            else:
-                                st.error("Failed to generate new logo. Please try again.")
-                    except Exception as e:
-                        st.error(f"Error generating logo: {str(e)}")
+            st.markdown("#### Logo Design")
             
             # 自动生成的Logo显示
             if hasattr(st.session_state, 'show_generated_logo') and st.session_state.show_generated_logo:
                 st.markdown("**AI Generated Logo:**")
                 st.image(st.session_state.generated_logo, width=150)
                 
-                if st.button("Apply AI Generated Logo"):
-                    # 保存Logo信息
-                    st.session_state.selected_preset_logo = "temp_logo.png"  # 临时名称
-                    
-                    # 保存图像到临时文件
-                    temp_logo = st.session_state.generated_logo
-                    temp_logo.save("temp_logo.png")
-                    
-                    # 创建Logo应用信息
-                    st.session_state.applied_logo = {
-                        "source": "ai",
-                        "path": "temp_logo.png",
-                        "size": 25,  # 默认大小25%
-                        "position": "Center",
-                        "opacity": 100
-                    }
-                    st.rerun()
+                # 添加Logo调整选项
+                logo_size = st.slider("Logo size:", 10, 50, 25, key="logo_size")
+                logo_position = st.selectbox("Logo position:", 
+                    ["Top-left", "Top-center", "Top-right", "Center", "Bottom-left", "Bottom-center", "Bottom-right"],
+                    index=3, key="logo_position")
+                logo_opacity = st.slider("Logo opacity:", 0, 100, 100, key="logo_opacity")
+                
+                # 添加手动应用Logo的按钮
+                if st.button("Apply Logo to Design"):
+                    try:
+                        # 保存Logo信息
+                        st.session_state.selected_preset_logo = "temp_logo.png"
+                        
+                        # 保存图像到临时文件
+                        st.session_state.generated_logo.save("temp_logo.png")
+                        
+                        # 创建Logo应用信息
+                        st.session_state.applied_logo = {
+                            "source": "ai",
+                            "path": "temp_logo.png",
+                            "size": logo_size,
+                            "position": logo_position,
+                            "opacity": logo_opacity
+                        }
+                        
+                        st.success("Logo已成功应用到设计中！")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"应用Logo时出错: {str(e)}")
     
     # Return to main interface button - modified here
     if st.button("Back to main page"):
