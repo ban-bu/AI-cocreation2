@@ -1367,75 +1367,52 @@ def show_high_complexity_general_sales():
         with st.expander("🎨 Color & Fabric", expanded=True):
             st.markdown("#### T-shirt Color")
             
-            # 颜色建议应用
-            if 'ai_suggested_colors' not in st.session_state:
-                # 初始提供一些默认颜色选项
-                st.session_state.ai_suggested_colors = {
-                    "white": "#FFFFFF", 
-                    "black": "#000000", 
-                    "navy blue": "#003366", 
-                    "light gray": "#CCCCCC", 
-                    "light blue": "#ADD8E6"
-                }
-            
-            # 创建颜色选择列表 - 动态创建
-            colors = st.session_state.ai_suggested_colors
-            color_cols = st.columns(min(3, len(colors)))
-            
-            for i, (color_name, color_hex) in enumerate(colors.items()):
-                with color_cols[i % 3]:
-                    # 显示颜色预览
-                    st.markdown(
-                        f"""
-                        <div style="
-                            background-color: {color_hex}; 
-                            width: 100%; 
-                            height: 40px; 
-                            border-radius: 5px;
-                            border: 1px solid #ddd;
-                            margin-bottom: 5px;">
-                        </div>
-                        <div style="text-align: center; margin-bottom: 10px;">
-                            {color_name}<br>
-                            <span style="font-family: monospace; font-size: 0.9em;">{color_hex}</span>
-                        </div>
-                        """, 
-                        unsafe_allow_html=True
-                    )
-                    if st.button(f"Apply {color_name}", key=f"apply_{i}"):
-                        st.session_state.shirt_color_hex = color_hex
-                        st.rerun()
-            
-            # 添加调试信息
-            if st.checkbox("Show color debug info", value=False):
-                st.write("Current AI suggested colors:", st.session_state.ai_suggested_colors)
-                st.write("Raw AI suggestions:", st.session_state.ai_suggestions)
+            # 检查是否有AI建议的颜色
+            if 'ai_suggested_colors' in st.session_state and st.session_state.ai_suggested_colors:
+                # 自动应用第一个建议的颜色（如果还没有应用过颜色）
+                if not hasattr(st.session_state, 'shirt_color_hex'):
+                    first_color = list(st.session_state.ai_suggested_colors.values())[0]
+                    st.session_state.shirt_color_hex = first_color
+                    st.session_state.current_applied_color = first_color
+                
+                # 显示所有AI建议的颜色
+                st.markdown("**AI Recommended Colors:**")
+                color_cols = st.columns(min(3, len(st.session_state.ai_suggested_colors)))
+                
+                for i, (color_name, color_hex) in enumerate(st.session_state.ai_suggested_colors.items()):
+                    with color_cols[i % 3]:
+                        # 显示颜色预览
+                        st.markdown(
+                            f"""
+                            <div style="
+                                background-color: {color_hex}; 
+                                width: 100%; 
+                                height: 40px; 
+                                border-radius: 5px;
+                                border: 1px solid #ddd;
+                                margin-bottom: 5px;">
+                            </div>
+                            <div style="text-align: center; margin-bottom: 10px;">
+                                {color_name}<br>
+                                <span style="font-family: monospace; font-size: 0.9em;">{color_hex}</span>
+                            </div>
+                            """, 
+                            unsafe_allow_html=True
+                        )
+                        if st.button(f"Apply", key=f"apply_color_{i}"):
+                            st.session_state.shirt_color_hex = color_hex
+                            st.session_state.current_applied_color = color_hex
+                            st.rerun()
             
             # 添加自定义颜色调整功能
             st.markdown("##### Custom color")
-            custom_color = st.color_picker("Select a custom color:", st.session_state.shirt_color_hex, key="custom_color_picker")
-            custom_col1, custom_col2 = st.columns([3, 1])
+            custom_color = st.color_picker("Choose custom color", 
+                                         value=st.session_state.shirt_color_hex if hasattr(st.session_state, 'shirt_color_hex') else "#FFFFFF")
             
-            with custom_col1:
-                # 显示自定义颜色预览
-                st.markdown(
-                    f"""
-                    <div style="
-                        background-color: {custom_color}; 
-                        width: 100%; 
-                        height: 40px; 
-                        border-radius: 5px;
-                        border: 1px solid #ddd;
-                        margin-bottom: 5px;">
-                    </div>
-                    """, 
-                    unsafe_allow_html=True
-                )
-            
-            with custom_col2:
-                if st.button("Apply custom color"):
-                    st.session_state.shirt_color_hex = custom_color
-                    st.rerun()
+            if custom_color != st.session_state.shirt_color_hex if hasattr(st.session_state, 'shirt_color_hex') else True:
+                st.session_state.shirt_color_hex = custom_color
+                st.session_state.current_applied_color = custom_color
+                st.rerun()
             
             # 添加面料纹理选择
             st.markdown("#### Fabric Texture")
