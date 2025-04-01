@@ -1532,7 +1532,10 @@ def show_high_complexity_general_sales():
                 for i, text in enumerate(st.session_state.ai_suggested_texts):
                     with text_cols[i % 2]:
                         if st.button(f"Use: {text}", key=f"text_suggestion_{i}"):
+                            # 更新会话状态中的文本选择
                             st.session_state.temp_text_selection = text
+                            # 更新输入框的值
+                            st.session_state.ai_text_suggestion = text
                             st.rerun()
             
             # 文字选项
