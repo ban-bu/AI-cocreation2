@@ -154,34 +154,6 @@ def get_ai_design_suggestions(user_preferences=None):
                         cleaned_descriptions = [re.sub(r'\s+', ' ', desc.strip()) for desc in logo_descriptions]
                         # 保存到会话状态
                         st.session_state.ai_suggested_logos = cleaned_descriptions
-                        
-                        # 自动生成第一个Logo
-                        try:
-                            if cleaned_descriptions and len(cleaned_descriptions) > 0:
-                                # 获取第一个Logo描述
-                                first_logo_desc = cleaned_descriptions[0]
-                                # 构建完整的提示词
-                                full_prompt = f"Create a Logo design: {first_logo_desc}. Requirements: 1. Use a simple design 2. Suitable for printing 3. Background transparent 4. Clear and recognizable图案清晰可识别"
-                                
-                                # 调用DALL-E生成图像
-                                logo_image = generate_vector_image(full_prompt)
-                                
-                                if logo_image:
-                                    # 保存生成的Logo
-                                    st.session_state.generated_logo = logo_image
-                                    # 保存Logo提示词
-                                    st.session_state.logo_prompt = first_logo_desc
-                                    # 记录logo是自动生成的
-                                    st.session_state.logo_auto_generated = True
-                                    # 添加一个变量记录需要在UI中显示Logo
-                                    st.session_state.show_generated_logo = True
-                                    
-                                    # 在控制台打印日志以便调试
-                                    print(f"Logo自动生成成功: {first_logo_desc}")
-                                    
-                        except Exception as logo_gen_error:
-                            print(f"自动生成Logo时出错: {logo_gen_error}")
-                            # 如果自动生成失败，不阻止其他功能
                     
             except Exception as e:
                 print(f"Error parsing: {e}")
@@ -1413,89 +1385,45 @@ def show_high_complexity_general_sales():
             if 'fabric_type' not in st.session_state:
                 st.session_state.fabric_type = "Cotton"  # 默认面料类型
             
-            # 如果有AI推荐的面料，则显示它们
-            if 'ai_suggested_fabrics' in st.session_state and st.session_state.ai_suggested_fabrics:
-                st.markdown("**AI Recommended Fabrics:**")
+            # 面料选择
+            fabric_options = ["Cotton", "Polyester", "Cotton-Polyester Blend", "Jersey", "Linen", "Bamboo"]
+            fabric_type = st.selectbox("Fabric type:", fabric_options,
+                                    index=fabric_options.index(st.session_state.fabric_type)
+                                    if st.session_state.fabric_type in fabric_options else 0)
+            
+            # 应用面料纹理按钮
+            if st.button("Apply Texture"):
+                # 更新存储的面料值
+                old_fabric = st.session_state.fabric_type
+                st.session_state.fabric_type = fabric_type
                 
-                # 创建面料推荐显示
-                fabric_matches = st.session_state.ai_suggested_fabrics
-                fabric_cols = st.columns(min(2, len(fabric_matches)))
-                
-                for i, (fabric_name, fabric_desc) in enumerate(fabric_matches.items()):
-                    with fabric_cols[i % 2]:
-                        st.markdown(f"**{fabric_name}**")
+                # 无论面料类型是否改变，都应用纹理
+                if st.session_state.original_base_image is not None:
+                    try:
+                        # 应用纹理
+                        new_colored_image = change_shirt_color(
+                            st.session_state.original_base_image, 
+                            st.session_state.shirt_color_hex,
+                            apply_texture=True, 
+                            fabric_type=fabric_type
+                        )
+                        st.session_state.base_image = new_colored_image
                         
-                        if st.button(f"Use {fabric_name}", key=f"fabric_{i}"):
-                            # 更新面料类型
-                            st.session_state.fabric_type = fabric_name
-                            
-                            # 应用面料纹理
-                            if st.session_state.original_base_image is not None:
-                                try:
-                                    # 应用纹理
-                                    new_colored_image = change_shirt_color(
-                                        st.session_state.original_base_image,
-                                        st.session_state.shirt_color_hex,
-                                        apply_texture=True,
-                                        fabric_type=fabric_name
-                                    )
-                                    st.session_state.base_image = new_colored_image
-                                    
-                                    # 更新当前图像
-                                    new_image, _ = draw_selection_box(new_colored_image, st.session_state.current_box_position)
-                                    st.session_state.current_image = new_image
-                                    
-                                    # 如果有最终设计，也需要更新
-                                    if st.session_state.final_design is not None:
-                                        st.session_state.final_design = new_colored_image.copy()
-                                    
-                                    st.success(f"Applied {fabric_name} texture")
-                                    st.rerun()
-                                except Exception as e:
-                                    st.warning(f"Error applying fabric texture: {e}")
-                
-                st.markdown("**All Available Fabrics:**")
-                # 面料选择
-                fabric_options = ["Cotton", "Polyester", "Cotton-Polyester Blend", "Jersey", "Linen", "Bamboo"]
-                fabric_type = st.selectbox("Fabric type:", fabric_options,
-                                        index=fabric_options.index(st.session_state.fabric_type)
-                                        if st.session_state.fabric_type in fabric_options else 0)
-                
-                # 应用面料纹理按钮
-                texture_col1, texture_col2 = st.columns([3, 1])
-                with texture_col1:
-                    if st.button("Apply Texture"):
-                        # 更新存储的面料值
-                        old_fabric = st.session_state.fabric_type
-                        st.session_state.fabric_type = fabric_type
+                        # 更新当前图像
+                        new_image, _ = draw_selection_box(new_colored_image, st.session_state.current_box_position)
+                        st.session_state.current_image = new_image
                         
-                        # 无论面料类型是否改变，都应用纹理
-                        if st.session_state.original_base_image is not None:
-                            try:
-                                # 应用纹理
-                                new_colored_image = change_shirt_color(
-                                    st.session_state.original_base_image, 
-                                    st.session_state.shirt_color_hex,
-                                    apply_texture=True, 
-                                    fabric_type=fabric_type
-                                )
-                                st.session_state.base_image = new_colored_image
-                                
-                                # 更新当前图像
-                                new_image, _ = draw_selection_box(new_colored_image, st.session_state.current_box_position)
-                                st.session_state.current_image = new_image
-                                
-                                # 如果有最终设计，也需要更新
-                                if st.session_state.final_design is not None:
-                                    st.session_state.final_design = new_colored_image.copy()
-                                
-                                st.rerun()
-                            except Exception as e:
-                                st.warning(f"应用面料纹理时出错: {e}")
+                        # 如果有最终设计，也需要更新
+                        if st.session_state.final_design is not None:
+                            st.session_state.final_design = new_colored_image.copy()
                         
-                        # 显示确认信息
-                        st.success(f"Fabric texture updated: {fabric_type}")
+                        st.rerun()
+                    except Exception as e:
+                        st.warning(f"应用面料纹理时出错: {e}")
                 
+                # 显示确认信息
+                st.success(f"Fabric texture updated: {fabric_type}")
+        
         # 文字设计部分 - 独立出来，确保始终显示
         with st.expander("✍️ Text Design", expanded=True):
             # 显示AI建议的文字候选项
