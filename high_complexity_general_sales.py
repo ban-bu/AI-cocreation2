@@ -44,41 +44,28 @@ def get_ai_design_suggestions(user_preferences=None, age_group=None, gender=None
     if not user_preferences:
         user_preferences = "casual fashion t-shirt design"
     
-    # 构建更详细的个性化提示，包含年龄、性别、兴趣和场合
-    personal_info = ""
-    if age_group:
-        personal_info += f"Age group: {age_group}. "
-    if gender:
-        personal_info += f"Gender: {gender}. "
-    if interests:
-        personal_info += f"Interests: {interests}. "
-    if occasion:
-        personal_info += f"Occasion: {occasion}. "
-    
     # Construct the prompt
     prompt = f"""
     As a T-shirt design consultant, please provide personalized design suggestions for a "{user_preferences}" style T-shirt.
     
-    Personal characteristics of the customer: {personal_info}
-    
-    Please provide the following design suggestions:
+    Please provide exactly TWO suggestions for each of the following aspects:
 
-    1. Color Suggestions: Recommend 3 suitable colors, including:
+    1. Color Suggestions: Recommend 2 suitable colors, including:
        - Color name and hex code (e.g., Blue (#0000FF))
-       - Why this color suits the style and personal characteristics (2-3 sentences explanation)
+       - Why this color suits the style (2-3 sentences explanation)
        
     2. Fabric Texture Suggestions: Recommend 2 suitable fabric types, including:
        - Specific fabric name (Cotton, Polyester, Cotton-Polyester Blend, Jersey, Linen, or Bamboo)
-       - Brief explanation on why this fabric suits the style and personal needs
+       - Brief explanation on why this fabric suits the style
        
-    3. Text Suggestions: Recommend 2 suitable texts/phrases that resonate with the personal characteristics:
+    3. Text Suggestions: Recommend 2 suitable texts/phrases:
        - Specific text content
        - Recommended font style
-       - Brief explanation of suitability for the individual
+       - Brief explanation of suitability
        
-    4. Logo Element Suggestions: Recommend 2 suitable design elements that reflect the personal style:
+    4. Logo Element Suggestions: Recommend 2 suitable design elements:
        - Element description
-       - How it complements the overall style and personal identity
+       - How it complements the overall style
        
     Please ensure to include hex codes for colors, keep content detailed but concise.
     For text suggestions, place each recommended phrase/text on a separate line and wrap them in quotes, e.g., "Just Do It".
